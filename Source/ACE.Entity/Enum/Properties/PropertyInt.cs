@@ -626,6 +626,8 @@ namespace ACE.Entity.Enum.Properties
         /// </summary>
         [ServerOnly]
         InventoryOrder                          = 9015,
+        [ServerOnly]
+        KillStreak                              = 9050,
     }
 
     public static class PropertyIntExtensions

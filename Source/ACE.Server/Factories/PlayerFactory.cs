@@ -516,13 +516,13 @@ namespace ACE.Server.Factories
                     player.AugmentationSkilledMissile = 1;
                     player.AugmentationIncreasedSpellDuration = 5;
                     player.LumAugSurgeChanceRating = 5;
-                    player.LumAugCritDamageRating = 5;
+                    player.LumAugCritDamageRating = 10;
                     player.LumAugItemManaUsage = 5;
                     player.LumAugItemManaGain = 5;
-                    player.LumAugDamageReductionRating = 5;
+                    player.LumAugDamageReductionRating = 10;
                     player.LumAugHealingRating = 5;
-                    player.LumAugCritReductionRating = 5;
-                    player.LumAugDamageRating = 5;
+                    player.LumAugCritReductionRating = 10;
+                    player.LumAugDamageRating = 10;
                     player.LumAugAllSkills = 10;
                     player.LumAugSkilledSpec = 5;
                     player.AugmentationExtraPackSlot = 1;

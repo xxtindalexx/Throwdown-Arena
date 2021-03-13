@@ -216,7 +216,11 @@ namespace ACE.Entity.Enum.Properties
         [ServerOnly]
         PCAPRecordeOmegaY              = 8017,
         [ServerOnly]
-        PCAPRecordeOmegaZ              = 8018
+        PCAPRecordeOmegaZ              = 8018,
+        [ServerOnly]
+        TrophyTime                     = 9001,
+        [ServerOnly]
+        TrophyTimer                    = 9002,
     }
 
     public static class PropertyFloatExtensions

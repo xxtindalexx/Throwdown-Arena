@@ -588,26 +588,32 @@ namespace ACE.Server.WorldObjects
 
         public static float MaxCriticalStrikeMod = 0.5f;
 
-        public static float GetCriticalStrikeDamageBonusMod(CreatureSkill skill)
+        public static float GetCriticalStrikeDamageMod(CreatureSkill skill)
         {
-            var baseDamageMod = 0.0f;
+            var baseDamageMod = 1.0f;
 
-            var skillType = GetImbuedSkillType(skill);
-            switch (skillType)
+            var baseSkill = GetBaseSkillImbued(skill);
+
+            float csmultiplier;
+
+            switch (GetImbuedSkillType(skill))
             {
                 case ImbuedSkillType.Melee:
-                    baseDamageMod *= (float)PropertyManager.GetDouble("imbue_critical_strike_melee_scalar").Item;
+                    csmultiplier = (float)Server.Managers.PropertyManager.GetDouble("imbue_critical_strike_melee_scalar").Item;
+                    baseDamageMod = csmultiplier * (Math.Max(0, baseSkill - 100) / 600.0f);
                     break;
                 case ImbuedSkillType.Missile:
-                    baseDamageMod *= (float)PropertyManager.GetDouble("imbue_critical_strike_missile_scalar").Item;
+                    csmultiplier = (float)Server.Managers.PropertyManager.GetDouble("imbue_critical_strike_missile_scalar").Item;
+                    baseDamageMod = csmultiplier * (baseSkill / 600.0f);
                     break;
                 case ImbuedSkillType.Magic:
-                    baseDamageMod *= (float)PropertyManager.GetDouble("imbue_critical_strike_magic_scalar").Item;
+                    csmultiplier = (float)Server.Managers.PropertyManager.GetDouble("imbue_critical_strike_magic_scalar").Item;
+                    baseDamageMod = csmultiplier * (baseSkill / 600.0f);
                     break;
-                default:
-                    return 0.0f;
             }
-            return baseDamageMod;
+            var criticalstrikedamageMod = Math.Max(1.0f, baseDamageMod);
+
+            return criticalstrikedamageMod;
         }
         public static float GetCriticalStrikeMod(CreatureSkill skill, bool isPvP = false)
         {
@@ -701,16 +707,16 @@ namespace ACE.Server.WorldObjects
             {
                 case ImbuedSkillType.Melee:
                     cbmultiplier = (float)Server.Managers.PropertyManager.GetDouble("imbue_crippling_blow_melee_scalar").Item;
-                    baseMod = cbmultiplier * (Math.Max(0, baseSkill - 40) / 360.0f);
+                    baseMod = cbmultiplier * (Math.Max(0, baseSkill - 40) / 600.0f);
                     break;
 
                 case ImbuedSkillType.Missile:
                     cbmultiplier = (float)Server.Managers.PropertyManager.GetDouble("imbue_crippling_blow_missile_scalar").Item;
-                    baseMod = cbmultiplier * (baseSkill / 360.0f); // old 60 = 6x, 90 = 4x
+                    baseMod = cbmultiplier * (baseSkill / 600.0f); // old 60 = 6x, 90 = 4x
                     break;
                 case ImbuedSkillType.Magic:
                     cbmultiplier = (float)Server.Managers.PropertyManager.GetDouble("imbue_crippling_blow_magic_scalar").Item;
-                    baseMod = cbmultiplier * (baseSkill / 360.0f); // old 60 = 6x, 90 = 4x
+                    baseMod = cbmultiplier * (baseSkill / 600.0f); // old 60 = 6x, 90 = 4x
                     break;
             }
 
@@ -757,16 +763,20 @@ namespace ACE.Server.WorldObjects
 
             var baseSkill = GetBaseSkillImbued(skill);
 
-            var armorRendingMod = 1.0f;
+            var armorRendingMod = Math.Max(1.0f, baseSkill);
+
+            float armultiplier;
 
             switch (GetImbuedSkillType(skill))
             {
                 case ImbuedSkillType.Melee:
-                    armorRendingMod -= Math.Max(0, baseSkill - 160) / 400.0f;
+                    armultiplier = (float)Server.Managers.PropertyManager.GetDouble("imbue_armor_rend_melee_scalar").Item;
+                    armorRendingMod = armultiplier * (baseSkill - 160) / 400.0f;
                     break;
 
                 case ImbuedSkillType.Missile:
-                    armorRendingMod -= Math.Max(0, baseSkill - 144) / 360.0f;
+                    armultiplier = (float)Server.Managers.PropertyManager.GetDouble("imbue_armor_rend_missile_scalar").Item;
+                    armorRendingMod = armultiplier * (baseSkill - 144) / 360.0f;
                     break;
             }
 

@@ -644,6 +644,8 @@ namespace ACE.Server.Managers
                 ("war_streak_spell_damage_modifier", new Property<double>(1.0, "")),
                 ("void_streak_spell_damage_modifier", new Property<double>(1.0, "")),
                 ("void_projectile_modifier", new Property<double>(1.0, "scales void projectile dmg")),
+                ("imbue_armor_rend_melee_scalar", new Property<double>(1.0, "Scales the effectiveness of Armor Rending for melee attacks at roughly max base skill. 1.0 = no effect. 2.0 = double damage etc")),
+                ("imbue_armor_rend_missile_scalar", new Property<double>(1.0, "Scales the effectiveness of Armor Rending for missile attacks at roughly max base skill. 1.0 = no effect. 2.0 = double damage etc.")),
                 ("imbue_crippling_blow_melee_scalar", new Property<double>(4.0, "Scales the effectiveness of Crippling Blow for melee attacks at roughly max base skill. 1.0 = no effect. 2.0 = double damage on crit at max base skill. 4.0 = 4x damage etc.")),
                 ("imbue_crippling_blow_magic_scalar", new Property<double>(4.0, "Scales the effectiveness of Crippling Blow for magic attacks at roughly max base skill. 1.0 = no effect. 2.0 = double damage on crit at max base skill. 4.0 = 4x damage etc.")),
                 ("imbue_crippling_blow_missile_scalar", new Property<double>(4.0, "Scales the effectiveness of Crippling Blow for missile attacks at roughly max base skill. 1.0 = no effect. 2.0 = double damage on crit at max base skill. 4.0 = 4x damage etc.")),

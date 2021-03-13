@@ -263,7 +263,7 @@ namespace ACE.Server.Entity
                     // recklessness excluded from crits
                     RecklessnessMod = 1.0f;
                     DamageRatingMod = Creature.AdditiveCombine(DamageRatingBaseMod, SneakAttackMod, HeritageMod);
-                    var damageBonusMod = WorldObject.GetCriticalStrikeDamageBonusMod(attackSkill);
+                    var damageBonusMod = WorldObject.GetCriticalStrikeDamageMod(attackSkill);
                     DamageBeforeMitigation = BaseDamageMod.MaxDamage * AttributeMod * PowerMod * SlayerMod * DamageRatingMod * (CriticalDamageMod + damageBonusMod);
                 }
             }
