@@ -199,6 +199,7 @@ namespace ACE.Server.WorldObjects
             if (IsPKDeath(topDamager))
             {
                 var killer = topDamager.TryGetAttacker() as Player;
+
                 if (killer != null)
                 {
                     var pktrophy = WorldObjectFactory.CreateNewWorldObject("ace1000002-pktrophy");

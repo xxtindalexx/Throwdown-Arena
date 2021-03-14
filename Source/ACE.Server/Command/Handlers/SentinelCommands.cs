@@ -153,7 +153,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // fellowbuff [name]
-        [CommandHandler("fellowbuff", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0,
+        [CommandHandler("fellowbuff", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 0,
             "Buffs your fellowship (or a player's fellowship) with all beneficial spells.",
             "[name]\n"
             + "This command buffs your fellowship (or the fellowship of the specified character).")]
@@ -178,31 +178,6 @@ namespace ACE.Server.Command.Handlers
 
             session.Player.CreateSentinelBuffPlayers(fellowshipMembers.Values,
                 fellowshipMembers.Count == 1 && aceParams[0].AsPlayer.Fellowship.FellowshipLeaderGuid == session.Player.Guid.Full);
-        }
-
-        // buff [name]
-        [CommandHandler("buff", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 0,
-            "Buffs you (or a player) with all beneficial spells.",
-            "[name] [maxLevel]\n"
-            + "This command buffs yourself (or the specified character).")]
-        public static void HandleBuff(Session session, params string[] parameters)
-        {
-            List<CommandParameterHelpers.ACECommandParameter> aceParams = new List<CommandParameterHelpers.ACECommandParameter>()
-            {
-                new CommandParameterHelpers.ACECommandParameter() {
-                    Type = CommandParameterHelpers.ACECommandParameterType.OnlinePlayerNameOrIid,
-                    Required = false,
-                    DefaultValue = session.Player
-                },
-                new CommandParameterHelpers.ACECommandParameter()
-                {
-                    Type = CommandParameterHelpers.ACECommandParameterType.ULong,
-                    Required = false,
-                    DefaultValue = (ulong)8
-                }
-            };
-            if (!CommandParameterHelpers.ResolveACEParameters(session, parameters, aceParams)) return;
-            session.Player.CreateSentinelBuffPlayers(new Player[] { aceParams[0].AsPlayer }, aceParams[0].AsPlayer == session.Player, aceParams[1].AsULong);
         }
 
         // run < on | off | toggle | check >

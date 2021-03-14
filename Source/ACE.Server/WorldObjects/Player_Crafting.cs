@@ -28,9 +28,7 @@ namespace ACE.Server.WorldObjects
             {61, 20986},    // Iron
             {67, 20985},    // Granite
             {74, 20988},    // Mahogany
-            {20, 21046},    // Diamond
-            {38, 21072},    // Ruby
-            {54, 21052},    // Gromnie Hide
+            {57, 21042},    // Brass
         };
 
         /// <summary>

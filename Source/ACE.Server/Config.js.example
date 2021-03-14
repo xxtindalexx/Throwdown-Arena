@@ -1,6 +1,6 @@
 {
   "Server": {
-    "WorldName": "ACEmulator",
+    "WorldName": "Throwdown",
 
     "Network": {
       // Host, default: "0.0.0.0"

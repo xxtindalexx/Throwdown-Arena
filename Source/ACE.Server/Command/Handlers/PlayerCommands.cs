@@ -71,9 +71,35 @@ namespace ACE.Server.Command.Handlers
             }
         }
 
+        // buff [name]
+        [CommandHandler("buff", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 0,
+            "Buffs you (or a player) with all beneficial spells.",
+            "[name] [maxLevel]\n"
+            + "This command buffs yourself (or the specified character).")]
+        public static void HandleBuff(Session session, params string[] parameters)
+        {
+            List<CommandParameterHelpers.ACECommandParameter> aceParams = new List<CommandParameterHelpers.ACECommandParameter>()
+            {
+                new CommandParameterHelpers.ACECommandParameter() {
+                    Type = CommandParameterHelpers.ACECommandParameterType.OnlinePlayerNameOrIid,
+                    Required = false,
+                    DefaultValue = session.Player
+                },
+                new CommandParameterHelpers.ACECommandParameter()
+                {
+                    Type = CommandParameterHelpers.ACECommandParameterType.ULong,
+                    Required = false,
+                    DefaultValue = (ulong)8
+                }
+            };
+            if (!CommandParameterHelpers.ResolveACEParameters(session, parameters, aceParams)) return;
+            session.Player.CreateSentinelBuffPlayers(new Player[] { aceParams[0].AsPlayer }, aceParams[0].AsPlayer == session.Player, aceParams[1].AsULong);
+        }
+
+
         /// <summary>
-        /// For characters/accounts who currently own multiple houses, used to select which house they want to keep
-        /// </summary>
+         /// For characters/accounts who currently own multiple houses, used to select which house they want to keep
+         /// </summary>
         [CommandHandler("house-select", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 1, "For characters/accounts who currently own multiple houses, used to select which house they want to keep")]
         public static void HandleHouseSelect(Session session, params string[] parameters)
         {
