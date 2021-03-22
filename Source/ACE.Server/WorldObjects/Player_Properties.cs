@@ -187,10 +187,10 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.DeathLevel); else SetProperty(PropertyInt.DeathLevel, value.Value); }
         }
 
-        public int? VitaeCpPool
+        public long? VitaeCpPool
         {
-            get => GetProperty(PropertyInt.VitaeCpPool);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.VitaeCpPool); else SetProperty(PropertyInt.VitaeCpPool, value.Value); }
+            get => GetProperty(PropertyInt64.VitaeCpPool);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt64.VitaeCpPool); else SetProperty(PropertyInt64.VitaeCpPool, value.Value); }
         }
 
         public bool HasVitae => EnchantmentManager.HasVitae;
@@ -1265,6 +1265,18 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyInstanceId.CurrentAppraisalTarget);
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.CurrentAppraisalTarget); else SetProperty(PropertyInstanceId.CurrentAppraisalTarget, value.Value); }
+        }
+
+        public long? TotalXpBeyond
+        {
+            get => GetProperty(PropertyInt64.TotalXpBeyond);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt64.TotalXpBeyond); else SetProperty(PropertyInt64.TotalXpBeyond, value.Value); }
+        }
+
+        public int? LastLevel
+        {
+            get => GetProperty(PropertyInt.LastLevel);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.LastLevel); else SetProperty(PropertyInt.LastLevel, value.Value); }
         }
 
         /// <summary>
