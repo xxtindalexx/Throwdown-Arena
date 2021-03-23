@@ -1,5 +1,5 @@
 using System;
-
+using ACE.Common;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
@@ -38,6 +38,55 @@ namespace ACE.Server.WorldObjects
             {
                 if (sourcePlayer != null)
                 {
+                    var weapon = sourcePlayer.GetEquippedMissileWeapon();
+
+                    sourcePlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{worldObject.ProjectileSource.Name}", ChatMessageType.Broadcast));
+
+                    if (weapon != null)
+                    {
+                        var maxdmg = 0;
+
+                        if (weapon.NumTimesTinkered > 0 && weapon.W_WeaponType == WeaponType.Bow)
+                        {
+
+                            for (int i = 0; i < weapon.NumTimesTinkered; i++)
+                            {
+                                maxdmg += (int)PropertyManager.GetDouble("bow_damage").Item;
+                                //sourcePlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"Added {maxdmg}", ChatMessageType.Broadcast));
+                            }
+
+                            var dmgrng = ThreadSafeRandom.Next(1, maxdmg);
+                            //sourcePlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"Added {dmgrng:N0} extra dmg -- from {maxdmg}", ChatMessageType.Broadcast));
+                            worldObject.Damage += dmgrng;
+                        }
+                        if (weapon.NumTimesTinkered > 0 && weapon.W_WeaponType == WeaponType.Crossbow)
+                        {
+
+                            for (int i = 0; i < weapon.NumTimesTinkered; i++)
+                            {
+                                maxdmg += (int)PropertyManager.GetDouble("xbow_damage").Item;
+                                //sourcePlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"Added {maxdmg}", ChatMessageType.Broadcast));
+                            }
+
+                            var dmgrng = ThreadSafeRandom.Next(1, maxdmg);
+                            //sourcePlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"Added {dmgrng:N0} extra dmg -- from {maxdmg}", ChatMessageType.Broadcast));
+                            worldObject.Damage += dmgrng;
+                        }
+                        if (weapon.NumTimesTinkered > 0 && weapon.W_WeaponType == WeaponType.Thrown)
+                        {
+
+                            for (int i = 0; i < weapon.NumTimesTinkered; i++)
+                            {
+                                maxdmg += (int)PropertyManager.GetDouble("thrown_damage").Item;
+                                //sourcePlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"Added {maxdmg}", ChatMessageType.Broadcast));
+                            }
+
+                            var dmgrng = ThreadSafeRandom.Next(1, maxdmg);
+                            //sourcePlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"Added {dmgrng:N0} extra dmg -- from {maxdmg}", ChatMessageType.Broadcast));
+                            worldObject.Damage += dmgrng;
+                        }
+                    }
+
                     // player damage monster or player
                     damageEvent = sourcePlayer.DamageTarget(targetCreature, worldObject);
 
@@ -80,7 +129,7 @@ namespace ACE.Server.WorldObjects
 
                         if (!(targetCreature is CombatPet))
                         {
-                            // faction mobs and foetype
+                            // faction mobs
                             sourceCreature.MonsterOnAttackMonster(targetCreature);
                         }
                     }
