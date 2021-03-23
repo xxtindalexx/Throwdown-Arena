@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
-
+using ACE.Common;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Physics;
 using ACE.Server.Physics.Animation;
@@ -15,6 +16,8 @@ namespace ACE.Server.WorldObjects
     /// </summary>
     partial class Player
     {
+
+        public int olddamage;
         /// <summary>
         /// The target this player is currently performing a melee attack on
         /// </summary>
@@ -299,7 +302,62 @@ namespace ACE.Server.WorldObjects
                         return;
                     }
 
+                    if (weapon != null)
+                    {
+                        olddamage = (int)weapon.Damage;
+
+                        var maxdam = 0;
+
+                        if (weapon.NumTimesTinkered > 0 && weapon.WeaponSkill == Skill.HeavyWeapons)
+                        {
+                            for (int i = 0; i < weapon.NumTimesTinkered; i++)
+                            {
+                                maxdam += (int)PropertyManager.GetDouble("heavy_wepons_damage").Item;
+                            }
+
+                            var dmgrng = ThreadSafeRandom.Next(1, maxdam);
+                            weapon.Damage += dmgrng;
+                            //Session.Network.EnqueueSend(new GameMessageSystemChat($"Added {dmgrng:N0} extra dmg -- from {maxdam}", ChatMessageType.Broadcast));                            
+                        }
+                        if (weapon.NumTimesTinkered > 0 && weapon.WeaponSkill == Skill.LightWeapons)
+                        {
+                            for (int i = 0; i < weapon.NumTimesTinkered; i++)
+                            {
+                                maxdam += (int)PropertyManager.GetDouble("light_weapons_damage").Item;
+                            }
+
+                            var dmgrng = ThreadSafeRandom.Next(1, maxdam);
+                            weapon.Damage += dmgrng;
+                            //Session.Network.EnqueueSend(new GameMessageSystemChat($"Added {dmgrng:N0} extra dmg -- from {maxdam}", ChatMessageType.Broadcast));                            
+                        }
+                        if (weapon.NumTimesTinkered > 0 && weapon.WeaponSkill == Skill.FinesseWeapons)
+                        {
+                            for (int i = 0; i < weapon.NumTimesTinkered; i++)
+                            {
+                                maxdam += (int)PropertyManager.GetDouble("finesse_weapons_damage").Item;
+                            }
+
+                            var dmgrng = ThreadSafeRandom.Next(1, maxdam);
+                            weapon.Damage += dmgrng;
+                            //Session.Network.EnqueueSend(new GameMessageSystemChat($"Added {dmgrng:N0} extra dmg -- from {maxdam}", ChatMessageType.Broadcast));                            
+                        }
+                        if (weapon.NumTimesTinkered > 0 && weapon.WeaponSkill == Skill.TwoHandedCombat)
+                        {
+                            for (int i = 0; i < weapon.NumTimesTinkered; i++)
+                            {
+                                maxdam += (int)PropertyManager.GetDouble("twohanded_damage").Item;
+                            }
+
+                            var dmgrng = ThreadSafeRandom.Next(1, maxdam);
+                            weapon.Damage += dmgrng;
+                            //Session.Network.EnqueueSend(new GameMessageSystemChat($"Added {dmgrng:N0} extra dmg -- from {maxdam}", ChatMessageType.Broadcast));                            
+                        }
+                    }
+
                     var damageEvent = DamageTarget(creature, weapon);
+
+                    if (weapon != null)
+                        weapon.Damage = olddamage;
 
                     // handle target procs
                     if (damageEvent != null && damageEvent.HasDamage && !targetProc)
@@ -317,6 +375,9 @@ namespace ACE.Server.WorldObjects
                             // target procs don't happen for cleaving
                             DamageTarget(cleaveHit, weapon);
                         }
+
+                        if (weapon != null)
+                            weapon.Damage = olddamage;
                     }
                 });
 
