@@ -78,51 +78,22 @@ namespace ACE.Server.WorldObjects
 
             PhysicsObj.ObjMaint.DestroyObjects();
 
-            if (LastLevel.HasValue)
+            // Check if we're due for our periodic SavePlayer
+            if (LastRequestedDatabaseSave == DateTime.MinValue)
+                LastRequestedDatabaseSave = DateTime.UtcNow;
+
+            if (LastRequestedDatabaseSave.AddSeconds(PlayerSaveIntervalSecs) <= DateTime.UtcNow)
+                SavePlayerToDatabase();
+
+            if (Teleporting && DateTime.UtcNow > Time.GetDateTimeFromTimestamp(LastTeleportStartTimestamp ?? 0).Add(MaximumTeleportTime))
             {
-                if (Level < LastLevel)
-                    Level = LastLevel;
+                if (Session != null)
+                    Session.LogOffPlayer(true);
+                else
+                    LogOut();
             }
 
-            if (HasAllegiance)
-            {
-                var monarch = Allegiance.Monarch.Player;
-
-                /*if (monarch.XPBonusTick.HasValue)
-                {
-                    long maxXp = 1000000; // 1 mill max
-                    // divides max xp by player level to determine XP that a player will gain.
-                    long totalXp = (long)Math.Round(maxXp * 0.000750 * (double)Level);
-
-                    if (Level >= 275)
-                        totalXp = (long)Math.Round(maxXp * 0.02 * (double)Level);
-
-                    if (totalXp > 1000000)
-                        totalXp = 1000000;
-
-                    long amount = (long)monarch.XPBonusTick * totalXp;
-
-                    GrantXP(amount, XpType.Admin, ShareType.None);
-                    //Session.Network.EnqueueSend(new GameMessageSystemChat($"You gained {amount} XP from your allegiances quest point specialization!", ChatMessageType.System));
-                }*/
-
-                // Check if we're due for our periodic SavePlayer
-                if (LastRequestedDatabaseSave == DateTime.MinValue)
-                    LastRequestedDatabaseSave = DateTime.UtcNow;
-
-                if (LastRequestedDatabaseSave.AddSeconds(PlayerSaveIntervalSecs) <= DateTime.UtcNow)
-                    SavePlayerToDatabase();
-
-                if (Teleporting && DateTime.UtcNow > Time.GetDateTimeFromTimestamp(LastTeleportStartTimestamp ?? 0).Add(MaximumTeleportTime))
-                {
-                    if (Session != null)
-                        Session.LogOffPlayer(true);
-                    else
-                        LogOut();
-                }
-
-                base.Heartbeat(currentUnixTime);
-            }
+            base.Heartbeat(currentUnixTime);
         }
 
         public static float MaxSpeed = 50;

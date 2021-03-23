@@ -14,9 +14,6 @@ using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
-using ACE.Entity.Enum.Properties;
-using ACE.DatLoader;
-using ACE.Server.Factories;
 
 
 namespace ACE.Server.Command.Handlers
@@ -32,21 +29,6 @@ namespace ACE.Server.Command.Handlers
         public static void HandlePop(Session session, params string[] parameters)
         {
             session.Network.EnqueueSend(new GameMessageSystemChat($"Current world population: {PlayerManager.GetOnlineCount().ToString()}\n", ChatMessageType.Broadcast));
-        }
-
-        [CommandHandler("checkxp", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 0)]
-        public static void HandleCheckXp(Session session, params string[] parameters)
-        {
-            if (session.Player.Level >= 275)
-            {
-                var currentxp = session.Player.TotalXpBeyond;
-
-                var currentremaining = currentxp - session.Player.TotalExperience;
-
-                session.Network.EnqueueSend(new GameMessageSystemChat($"You need {currentremaining:N0}xp to reach level {session.Player.Level + 1}. Required total xp is {currentxp:N0}", ChatMessageType.Broadcast));
-            }
-            else
-                return;
         }
 
         // quest info (uses GDLe formatting to match plugin expectations)
