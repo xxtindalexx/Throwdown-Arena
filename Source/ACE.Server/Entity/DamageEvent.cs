@@ -225,24 +225,9 @@ namespace ACE.Server.Entity
             // damage before mitigation
             DamageBeforeMitigation = BaseDamage * AttributeMod * PowerMod * SlayerMod * DamageRatingMod;
 
-            float pvpBalanceMulti = 1f;
-            if (playerAttacker != null && playerDefender != null && Weapon?.WeaponSkill == Skill.MissileWeapons)
-                pvpBalanceMulti *= (float)PropertyManager.GetDouble("pvp_missile_weapon_damage_modifier").Item;
-            else if (playerAttacker != null && playerDefender != null && (Weapon == null || Weapon.WeaponSkill != Skill.MissileWeapons))
-                pvpBalanceMulti *= (float)PropertyManager.GetDouble("pvp_melee_weapon_damage_modifier").Item;
-            DamageBeforeMitigation *= pvpBalanceMulti;
-
             // critical hit?
             var attackSkill = attacker.GetCreatureSkill(attacker.GetCurrentWeaponSkill());
             CriticalChance = WorldObject.GetWeaponCriticalChance(attacker, attackSkill, defender);
-
-            // https://asheron.fandom.com/wiki/Announcements_-_2002/08_-_Atonement
-            // It should be noted that any time a character is logging off, PK or not, all physical attacks against them become automatically critical.
-            // (Note that spells do not share this behavior.) We hope this will stress the need to log off in a safe place.
-
-            if (playerDefender != null && (playerDefender.IsLoggingOut || playerDefender.PKLogout))
-                CriticalChance = 1.0f;
-
             if (CriticalChance > ThreadSafeRandom.Next(0.0f, 1.0f))
             {
                 if (playerDefender != null && playerDefender.AugmentationCriticalDefense > 0)
@@ -263,8 +248,7 @@ namespace ACE.Server.Entity
                     // recklessness excluded from crits
                     RecklessnessMod = 1.0f;
                     DamageRatingMod = Creature.AdditiveCombine(DamageRatingBaseMod, SneakAttackMod, HeritageMod);
-                    var damageBonusMod = WorldObject.GetCriticalStrikeDamageMod(attackSkill);
-                    DamageBeforeMitigation = BaseDamageMod.MaxDamage * AttributeMod * PowerMod * SlayerMod * DamageRatingMod * (CriticalDamageMod + damageBonusMod);
+                    DamageBeforeMitigation = BaseDamageMod.MaxDamage * AttributeMod * PowerMod * SlayerMod * DamageRatingMod * CriticalDamageMod;
                 }
             }
 
