@@ -32,8 +32,6 @@ namespace ACE.Server.WorldObjects
 
         public SpellProjectileInfo Info { get; set; }
 
-        public int DebugVelocity;
-
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
@@ -330,27 +328,14 @@ namespace ACE.Server.WorldObjects
                 // ProjectileTarget will be null here, so procs will not apply
                 if (sourceCreature != null && ProjectileTarget != null)
                 {
-                    // TODO figure out why cross-landblock group operations are happening here. We shouldn't need this code Mag-nus 2021-02-09
-                    bool threadSafe = true;
-
-                    if (LandblockManager.CurrentlyTickingLandblockGroupsMultiThreaded)
-                    {
-                        // Ok... if we got here, we're likely in the parallel landblock physics processing.
-                        if (sourceCreature.CurrentLandblock == null || creatureTarget.CurrentLandblock == null || sourceCreature.CurrentLandblock.CurrentLandblockGroup != creatureTarget.CurrentLandblock.CurrentLandblockGroup)
-                            threadSafe = false;
-                    }
-
-                    if (threadSafe)
-                        // This can result in spell projectiles being added to either sourceCreature or creatureTargets landblock.
+                    // Ok... if we got here, we're likely in the parallel landblock physics processing.
+                    // We're currently on the thread for this, but we're wanting to perform some work on sourceCreature which can result in a new spell being created
+                    // and added to the sourceCreature's current landblock, which, could be on a separate thread.
+                    // Any chance of a cross landblock group work (and thus cross thread), should be enqueued onto the target object to maintain thread safety.
+                    if (sourceCreature.CurrentLandblock == null || sourceCreature.CurrentLandblock == CurrentLandblock)
                         sourceCreature.TryProcEquippedItems(creatureTarget, false);
                     else
-                    {
-                        // sourceCreature and creatureTarget are now in different landblock groups.
-                        // What has likely happened is that sourceCreature sent a projectile toward creatureTarget. Before impact, sourceCreature was teleported away.
-                        // To perform this fully thread safe, we would enqueue the work onto worldManager.
-                        // WorldManager.EnqueueAction(new ActionEventDelegate(() => sourceCreature.TryProcEquippedItems(creatureTarget, false)));
-                        // But, to keep it simple, we will just ignore it and not bother with TryProcEquippedItems for this particular impact.
-                    }
+                        sourceCreature.EnqueueAction(new ActionEventDelegate(() => sourceCreature.TryProcEquippedItems(creatureTarget, false)));
                 }
             }
 
@@ -361,7 +346,7 @@ namespace ACE.Server.WorldObjects
             if (player == null && targetPlayer == null)
             {
                 // check for faction combat
-                if (sourceCreature != null && creatureTarget != null && (sourceCreature.AllowFactionCombat(creatureTarget) || sourceCreature.PotentialFoe(creatureTarget)))
+                if (sourceCreature != null && creatureTarget != null && sourceCreature.AllowFactionCombat(creatureTarget))
                     sourceCreature.MonsterOnAttackMonster(creatureTarget);
             }
         }
@@ -470,24 +455,32 @@ namespace ACE.Server.WorldObjects
             // war/void magic projectiles
             else
             {
-                var modifier = 1.0;
-                
+                var minDamage = Spell.MinDamage;
+                var maxDamage = Spell.MaxDamage;
+
                 if (isPVP)
                 {
+                    var modifier = PropertyManager.GetDouble("spell_damage_modifier").Item; // mostly unused
+
                     if (Spell.School == MagicSchool.WarMagic)
                     {
-                        modifier = PropertyManager.GetDouble("spell_damage_modifier").Item; // mostly unused
-
                         if (SpellType == ProjectileSpellType.Streak)
+                        {
                             modifier = PropertyManager.GetDouble("war_streak_spell_damage_modifier").Item; // scales war streak damages
+                        }
                     }
                     else if (Spell.School == MagicSchool.VoidMagic)
                     {
                         if (SpellType == ProjectileSpellType.Streak)
+                        {
                             modifier = PropertyManager.GetDouble("void_streak_spell_damage_modifier").Item;
+                        }
                         else
                             modifier = PropertyManager.GetDouble("void_projectile_modifier").Item;
                     }
+
+                    minDamage = (int)Math.Round(minDamage * modifier);
+                    maxDamage = (int)Math.Round(maxDamage * modifier);
                 }
 
                 if (criticalHit)
@@ -509,9 +502,9 @@ namespace ACE.Server.WorldObjects
                     // No more crits that do less damage than non-crits!
 
                     if (isPVP) // PvP: 50% of the MIN damage added to normal damage roll
-                        critDamageBonus = Spell.MinDamage * 0.5f;
+                        critDamageBonus = minDamage * 0.5f;
                     else   // PvE: 50% of the MAX damage added to normal damage roll
-                        critDamageBonus = Spell.MaxDamage * 0.5f;
+                        critDamageBonus = maxDamage * 0.5f;
 
                     weaponCritDamageMod = GetWeaponCritDamageMod(sourceCreature, attackSkill, target);
 
@@ -534,11 +527,10 @@ namespace ACE.Server.WorldObjects
                         //var percentageBonus = Math.Clamp((magicSkill - Spell.Power) / 100.0f, 0.0f, 0.5f);
                         var percentageBonus = (magicSkill - difficulty) / 1000.0f;
 
-                        skillBonus = Spell.MinDamage * percentageBonus;
+                        skillBonus = minDamage * percentageBonus;
                     }
                 }
-                baseDamage = ThreadSafeRandom.Next(Spell.MinDamage, Spell.MaxDamage);
-                baseDamage = (int)(baseDamage * modifier);
+                baseDamage = ThreadSafeRandom.Next(minDamage, maxDamage);
 
                 weaponResistanceMod = GetWeaponResistanceModifier(sourceCreature, attackSkill, Spell.DamageType);
 
@@ -774,7 +766,7 @@ namespace ACE.Server.WorldObjects
 
                 if (sourcePlayer != null)
                 {
-                    var critProt = critDefended ? " Your critical hit was avoided with their augmentation!" : "";
+                    var critProt = critDefended ? " Your target's Critical Protection augmentation allows them to avoid your critical hit!" : "";
 
                     var attackerMsg = $"{critMsg}{overpowerMsg}{sneakMsg}You {verb} {target.Name} for {amount} points with {Spell.Name}.{critProt}";
 
@@ -791,7 +783,7 @@ namespace ACE.Server.WorldObjects
 
                 if (targetPlayer != null)
                 {
-                    var critProt = critDefended ? " Your augmentation allows you to avoid a critical hit!" : "";
+                    var critProt = critDefended ? " Your Critical Protection augmentation allows you to avoid a critical hit!" : "";
 
                     var defenderMsg = $"{critMsg}{overpowerMsg}{sneakMsg}{ProjectileSource.Name} {plural} you for {amount} points with {Spell.Name}.{critProt}";
 
@@ -803,9 +795,6 @@ namespace ACE.Server.WorldObjects
 
                     if (!targetPlayer.SquelchManager.Squelches.Contains(ProjectileSource, ChatMessageType.Magic))
                         targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat(defenderMsg, ChatMessageType.Magic));
-
-                    if (sourceCreature != null)
-                        targetPlayer.SetCurrentAttacker(sourceCreature);
                 }
 
                 if (!nonHealth)
