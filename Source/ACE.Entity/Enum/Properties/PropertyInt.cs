@@ -179,7 +179,7 @@ namespace ACE.Entity.Enum.Properties
         VendorHappyVariance                      = 127,
         CloakStatus                              = 128,
         [SendOnLogin]
-        //VitaeCpPool                              = 129,
+        VitaeCpPool                              = 129,
         NumServicesSold                          = 130,
         MaterialType                             = 131,
         [SendOnLogin]
@@ -626,12 +626,6 @@ namespace ACE.Entity.Enum.Properties
         /// </summary>
         [ServerOnly]
         InventoryOrder                          = 9015,
-        [ServerOnly]
-        XPBonus                                 = 9025,
-        [ServerOnly]
-        XPBonusTick                             = 9026,
-        [ServerOnly]
-        LastLevel                               = 9035,
         [ServerOnly]
         KillStreak                              = 9050,
     }
