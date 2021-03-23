@@ -260,6 +260,46 @@ namespace ACE.Server.WorldObjects
                 var criticalStrikeBonus = GetCriticalStrikeMod(skill);
 
                 critRate = Math.Max(critRate, criticalStrikeBonus);
+            }            
+
+            if (weapon != null && weapon.HasImbuedEffect(ImbuedEffectType.CripplingBlow))
+            {
+                var skillType = GetImbuedSkillType(skill);
+
+                if (skillType == ImbuedSkillType.Melee)
+                {
+                    switch (weapon.WeaponSkill)
+                    {
+                        case Skill.HeavyWeapons:
+                            critRate += (float)PropertyManager.GetDouble("heavy_cb_crit_rate").Item;
+                            break;
+                        case Skill.LightWeapons:
+                            critRate += (float)PropertyManager.GetDouble("light_cb_crit_rate").Item;
+                            break;
+                        case Skill.FinesseWeapons:
+                            critRate += (float)PropertyManager.GetDouble("finesse_cb_crit_rate").Item;
+                            break;
+                        case Skill.TwoHandedCombat:
+                            critRate += (float)PropertyManager.GetDouble("twohanded_cb_crit_rate").Item;
+                            break;
+                    }
+                }
+
+                if (skillType == ImbuedSkillType.Missile)
+                {
+                    switch (weapon.W_WeaponType)
+                    {
+                        case WeaponType.Crossbow:
+                            critRate += (float)PropertyManager.GetDouble("xbow_cb_crit_rate").Item;
+                            break;
+                        case WeaponType.Bow:
+                            critRate += (float)PropertyManager.GetDouble("bow_cb_crit_rate").Item;
+                            break;
+                        case WeaponType.Thrown:
+                            critRate += (float)PropertyManager.GetDouble("thrown_cb_crit_rate").Item;
+                            break;
+                    }
+                }
             }
 
             if (wielder != null)
@@ -272,14 +312,9 @@ namespace ACE.Server.WorldObjects
             return critRate;
         }
 
-        // http://acpedia.org/wiki/Announcements_-_2002/08_-_Atonement#Letter_to_the_Players - 2% originally
+        // http://acpedia.org/wiki/Announcements_-_2002/08_-_Atonement#Letter_to_the_Players
 
-        // http://acpedia.org/wiki/Announcements_-_2002/11_-_The_Iron_Coast#Release_Notes
-        // The chance for causing a critical hit with magic, both with and without a Critical Strike wand, has been increased.
-        // what this was actually increased to for base, was never stated directly in the dev notes
-        // speculation is that it was 5%, to align with the minimum that CS magic scales from
-
-        private const float defaultMagicCritFrequency = 0.05f;
+        private const float defaultMagicCritFrequency = 0.02f;      // 2% base chance
 
         /// <summary>
         /// Returns the critical chance for the current magic weapon
@@ -314,6 +349,12 @@ namespace ACE.Server.WorldObjects
             return critRate;
         }
 
+        public double? CriticalMultiplier
+        {
+            get => GetProperty(PropertyFloat.CriticalMultiplier);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.CriticalMultiplier); else SetProperty(PropertyFloat.CriticalMultiplier, value.Value); }
+        }
+
         private const float defaultCritDamageMultiplier = 1.0f;
 
         /// <summary>
@@ -330,6 +371,105 @@ namespace ACE.Server.WorldObjects
                 var cripplingBlowMod = GetCripplingBlowMod(skill);
 
                 critDamageMod = Math.Max(critDamageMod, cripplingBlowMod); 
+            }
+
+            //soulbound tuning.
+            if (weapon != null && target != null && weapon.Workmanship == null && target.PlayerKillerStatus == PlayerKillerStatus.PK && weapon.WeenieClassId == 37585)
+            {
+                weapon.CriticalMultiplier = 1.5f;
+                critDamageMod = 1.5f;
+                //target.EnqueueBroadcast(new GameMessageSystemChat($"{weapon.CriticalMultiplier}", ChatMessageType.x1B));
+            }
+
+            if (weapon != null && target != null && weapon.Workmanship == null && target.PlayerKillerStatus == PlayerKillerStatus.NPK && weapon.WeenieClassId == 37585 && weapon.CriticalMultiplier == 1.5f)
+            {
+                weapon.CriticalMultiplier = 2.0f;
+                critDamageMod = 2.0f;
+                //target.EnqueueBroadcast(new GameMessageSystemChat($"{weapon.CriticalMultiplier}", ChatMessageType.x1B));
+            }
+
+            if (weapon != null && weapon.HasImbuedEffect(ImbuedEffectType.CripplingBlow))
+            {
+                var cripplingBlowMod = GetCripplingBlowMod(skill);
+
+                critDamageMod = Math.Max(critDamageMod, cripplingBlowMod);
+
+                var skillType = GetImbuedSkillType(skill);
+
+                if (skillType == ImbuedSkillType.Melee)
+                {
+                    switch (weapon.WeaponSkill)
+                    {
+                        case Skill.HeavyWeapons:
+                            critDamageMod += (float)PropertyManager.GetDouble("heavy_cb_damage").Item;
+                            break;
+                        case Skill.LightWeapons:
+                            critDamageMod += (float)PropertyManager.GetDouble("light_cb_damage").Item;
+                            break;
+                        case Skill.FinesseWeapons:
+                            critDamageMod += (float)PropertyManager.GetDouble("finesse_cb_damage").Item;
+                            break;
+                        case Skill.TwoHandedCombat:
+                            critDamageMod += (float)PropertyManager.GetDouble("twohanded_cb_damage").Item;
+                            break;
+                    }
+                }
+
+                if (skillType == ImbuedSkillType.Missile)
+                {
+                    switch (weapon.W_WeaponType)
+                    {
+                        case WeaponType.Crossbow:
+                            critDamageMod += (float)PropertyManager.GetDouble("xbow_cb_damage").Item;
+                            break;
+                        case WeaponType.Bow:
+                            critDamageMod += (float)PropertyManager.GetDouble("bow_cb_damage").Item;
+                            break;
+                        case WeaponType.Thrown:
+                            critDamageMod += (float)PropertyManager.GetDouble("thrown_cb_damage").Item;
+                            break;
+                    }
+                }
+            }
+
+            if (weapon != null && weapon.HasImbuedEffect(ImbuedEffectType.CriticalStrike))
+            {
+                var skillType = GetImbuedSkillType(skill);
+
+                if (skillType == ImbuedSkillType.Melee)
+                {
+                    switch (weapon.WeaponSkill)
+                    {
+                        case Skill.HeavyWeapons:
+                            critDamageMod += (float)PropertyManager.GetDouble("heavy_cs_damage").Item;
+                            break;
+                        case Skill.LightWeapons:
+                            critDamageMod += (float)PropertyManager.GetDouble("light_cs_damage").Item;
+                            break;
+                        case Skill.FinesseWeapons:
+                            critDamageMod += (float)PropertyManager.GetDouble("finesse_cs_damage").Item;
+                            break;
+                        case Skill.TwoHandedCombat:
+                            critDamageMod += (float)PropertyManager.GetDouble("twohanded_cs_damage").Item;
+                            break;
+                    }
+                }
+
+                if (skillType == ImbuedSkillType.Missile)
+                {
+                    switch (weapon.W_WeaponType)
+                    {
+                        case WeaponType.Crossbow:
+                            critDamageMod += (float)PropertyManager.GetDouble("xbow_cs_damage").Item;
+                            break;
+                        case WeaponType.Bow:
+                            critDamageMod += (float)PropertyManager.GetDouble("bow_cs_damage").Item;
+                            break;
+                        case WeaponType.Thrown:
+                            critDamageMod += (float)PropertyManager.GetDouble("thrown_cs_damage").Item;
+                            break;
+                    }
+                }
             }
 
             if (wielder != null)
@@ -584,37 +724,10 @@ namespace ACE.Server.WorldObjects
         // Critical Strike for War Magic currently scales from 5% critical hit chance to 25% critical hit chance at maximum effectiveness.
         // In July, the maximum effectiveness will be increased to 50% chance.
 
-        //public static float MinCriticalStrikeMagicMod = 0.05f;
+        public static float MinCriticalStrikeMagicMod = 0.05f;
 
         public static float MaxCriticalStrikeMod = 0.5f;
 
-        public static float GetCriticalStrikeDamageMod(CreatureSkill skill)
-        {
-            var baseDamageMod = 1.0f;
-
-            var baseSkill = GetBaseSkillImbued(skill);
-
-            float csmultiplier;
-
-            switch (GetImbuedSkillType(skill))
-            {
-                case ImbuedSkillType.Melee:
-                    csmultiplier = (float)Server.Managers.PropertyManager.GetDouble("imbue_critical_strike_melee_scalar").Item;
-                    baseDamageMod = csmultiplier * (Math.Max(0, baseSkill - 100) / 600.0f);
-                    break;
-                case ImbuedSkillType.Missile:
-                    csmultiplier = (float)Server.Managers.PropertyManager.GetDouble("imbue_critical_strike_missile_scalar").Item;
-                    baseDamageMod = csmultiplier * (baseSkill / 600.0f);
-                    break;
-                case ImbuedSkillType.Magic:
-                    csmultiplier = (float)Server.Managers.PropertyManager.GetDouble("imbue_critical_strike_magic_scalar").Item;
-                    baseDamageMod = csmultiplier * (baseSkill / 600.0f);
-                    break;
-            }
-            var criticalstrikedamageMod = Math.Max(1.0f, baseDamageMod);
-
-            return criticalstrikedamageMod;
-        }
         public static float GetCriticalStrikeMod(CreatureSkill skill, bool isPvP = false)
         {
             var baseMod = 0.0f;
@@ -628,17 +741,12 @@ namespace ACE.Server.WorldObjects
                 case ImbuedSkillType.Melee:
 
                     baseMod = Math.Max(0, baseSkill - 100) / 600.0f;
-                    baseMod *= (float)PropertyManager.GetDouble("imbue_critical_strike_melee_rate").Item;
                     break;
 
                 case ImbuedSkillType.Missile:
-                    baseMod = Math.Max(0, baseSkill - 60) / 600.0f;
-                    baseMod *= (float)PropertyManager.GetDouble("imbue_critical_strike_missile_rate").Item;
-                    break;
                 case ImbuedSkillType.Magic:
 
                     baseMod = Math.Max(0, baseSkill - 60) / 600.0f;
-                    baseMod *= (float)PropertyManager.GetDouble("imbue_critical_strike_magic_rate").Item;
                     break;
 
                 default:
@@ -667,16 +775,12 @@ namespace ACE.Server.WorldObjects
             // This code is checking if the player has reached the skill threshold for receiving the 5% bonus
             // (base skill 90 in PvE, base skill 120 in PvP)
 
-            /*var criticalStrikeMod = skillType == ImbuedSkillType.Magic ? defaultMagicCritFrequency : defaultPhysicalCritFrequency;
+            var criticalStrikeMod = skillType == ImbuedSkillType.Magic ? defaultMagicCritFrequency : defaultPhysicalCritFrequency;
 
             var minEffective = skillType == ImbuedSkillType.Magic ? MinCriticalStrikeMagicMod : defaultPhysicalCritFrequency;
 
             if (baseMod >= minEffective)
-                criticalStrikeMod = baseMod;*/
-
-            var defaultCritFrequency = skillType == ImbuedSkillType.Magic ? defaultMagicCritFrequency : defaultPhysicalCritFrequency;
-
-            var criticalStrikeMod = Math.Max(defaultCritFrequency, baseMod);
+                criticalStrikeMod = baseMod;
 
             //Console.WriteLine($"CriticalStrikeMod: {criticalStrikeMod}");
 
@@ -702,21 +806,16 @@ namespace ACE.Server.WorldObjects
 
             var baseMod = 1.0f;
 
-            float cbmultiplier;
-            switch (GetImbuedSkillType(skill))
+            switch(GetImbuedSkillType(skill))
             {
                 case ImbuedSkillType.Melee:
-                    cbmultiplier = (float)Server.Managers.PropertyManager.GetDouble("imbue_crippling_blow_melee_scalar").Item;
-                    baseMod = cbmultiplier * (Math.Max(0, baseSkill - 40) / 600.0f);
+                    baseMod = Math.Max(0, baseSkill - 40) / 60.0f;
                     break;
 
                 case ImbuedSkillType.Missile:
-                    cbmultiplier = (float)Server.Managers.PropertyManager.GetDouble("imbue_crippling_blow_missile_scalar").Item;
-                    baseMod = cbmultiplier * (baseSkill / 600.0f); // old 60 = 6x, 90 = 4x
-                    break;
                 case ImbuedSkillType.Magic:
-                    cbmultiplier = (float)Server.Managers.PropertyManager.GetDouble("imbue_crippling_blow_magic_scalar").Item;
-                    baseMod = cbmultiplier * (baseSkill / 600.0f); // old 60 = 6x, 90 = 4x
+
+                    baseMod = baseSkill / 60.0f;
                     break;
             }
 
@@ -763,20 +862,16 @@ namespace ACE.Server.WorldObjects
 
             var baseSkill = GetBaseSkillImbued(skill);
 
-            var armorRendingMod = Math.Max(1.0f, baseSkill);
-
-            float armultiplier;
+            var armorRendingMod = 1.0f;
 
             switch (GetImbuedSkillType(skill))
             {
                 case ImbuedSkillType.Melee:
-                    armultiplier = (float)Server.Managers.PropertyManager.GetDouble("imbue_armor_rend_melee_scalar").Item;
-                    armorRendingMod = armultiplier * (baseSkill - 160) / 400.0f;
+                    armorRendingMod -= Math.Max(0, baseSkill - 160) / 400.0f;
                     break;
 
                 case ImbuedSkillType.Missile:
-                    armultiplier = (float)Server.Managers.PropertyManager.GetDouble("imbue_armor_rend_missile_scalar").Item;
-                    armorRendingMod = armultiplier * (baseSkill - 144) / 360.0f;
+                    armorRendingMod -= Math.Max(0, baseSkill - 144) / 360.0f;
                     break;
             }
 
@@ -992,12 +1087,8 @@ namespace ACE.Server.WorldObjects
             if (spell.NotFound)
             {
                 if (wielder is Player player)
-                {
-                    if (spell._spellBase == null)
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"SpellId {ProcSpell.Value} Invalid.", ChatMessageType.System));
-                    else
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
-                }
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
+
                 return;
             }
 
