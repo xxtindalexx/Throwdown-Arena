@@ -337,9 +337,9 @@ namespace ACE.Server.Factories
             player.Sanctuary = new Position(8323335, 260.085388f, -20.421343f, -59.994999f, 0.0f, -0.0f, -0.707107f, -0.707107f);
             player.SetProperty(PropertyBool.RecallsDisabled, false);
             player.AvailableSkillCredits = 50;
-            player.AvailableExperience += 191226310247;
-            player.TotalExperience += 191226310247;
-            player.Level = 275;
+            player.AvailableExperience += 191226310245;
+            player.TotalExperience += 191226310245;
+            player.Level = 274;
 
 
 
