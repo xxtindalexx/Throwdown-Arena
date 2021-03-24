@@ -6,6 +6,7 @@ using ACE.Common;
 using ACE.DatLoader;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
@@ -529,6 +530,22 @@ namespace ACE.Server.WorldObjects
             if (isWeaponSpell)
                 castingPreCheckStatus = CastingPreCheckStatus.Success;
 
+            HashSet<SpellCategory> StreakSpells = new HashSet<SpellCategory>
+                {
+                   (SpellCategory)243, (SpellCategory)244, (SpellCategory)245, (SpellCategory)246, (SpellCategory)247, (SpellCategory)248, (SpellCategory)249
+                };
+
+            if (Time.GetUnixTime() < StreakTimer && StreakSpells.Contains(spell.Category))
+            {
+                if (Time.GetUnixTime() > StreakTimer && castingPreCheckStatus == CastingPreCheckStatus.CastFailed)
+                    RemoveProperty(PropertyFloat.StreakTimer);
+                else
+                {
+                    castingPreCheckStatus = CastingPreCheckStatus.CastFailed;
+                    Session.Network.EnqueueSend(new GameMessageSystemChat($"Streak Spamming is for pussies", ChatMessageType.Magic));
+                }
+            }
+
             // limit casting time between war and void
             if (spell.School == MagicSchool.VoidMagic && LastSuccessCast_School == MagicSchool.WarMagic ||
                 spell.School == MagicSchool.WarMagic && LastSuccessCast_School == MagicSchool.VoidMagic)
@@ -913,6 +930,17 @@ namespace ACE.Server.WorldObjects
                 if (target is Player targetPlayer)
                     targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(targetPlayer.Session, pk_error[1], Name));
             }
+
+            HashSet<SpellCategory> StreakSpells = new HashSet<SpellCategory>
+                {
+                   (SpellCategory)243, (SpellCategory)244, (SpellCategory)245, (SpellCategory)246, (SpellCategory)247, (SpellCategory)248, (SpellCategory)249
+                };
+
+            if (StreakSpells.Contains(spell.Category) && !StreakTimer.HasValue)
+                SetProperty(PropertyFloat.StreakTimer, Time.GetFutureUnixTime(2.3f));
+
+            if (Time.GetUnixTime() > StreakTimer)
+                RemoveProperty(PropertyFloat.StreakTimer);
 
             if (finishCast)
                 FinishCast();

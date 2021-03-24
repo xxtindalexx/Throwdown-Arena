@@ -1258,6 +1258,12 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.AppraisalRequestedTimestamp); else SetProperty(PropertyFloat.AppraisalRequestedTimestamp, value.Value); }
         }
 
+        public double? StreakTimer
+        {
+            get => GetProperty(PropertyFloat.StreakTimer);
+            set { if (value == 0) RemoveProperty(PropertyFloat.StreakTimer); else SetProperty(PropertyFloat.StreakTimer, value.Value); }
+        }
+
         /// <summary>
         /// ACE is currently using this for the last successful appraised object guid
         /// </summary>
