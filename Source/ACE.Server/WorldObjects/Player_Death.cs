@@ -569,6 +569,11 @@ namespace ACE.Server.WorldObjects
                     continue;
                 }
 
+                if (dropItem.WeenieClassId == 1000002)
+                {
+                    UpdateProperty(dropItem, PropertyInt.Bonded, 0, true);
+                }
+
                 if (!corpse.TryAddToInventory(dropItem))
                 {
                     log.Warn($"Player_Death: couldn't add item to {Name}'s corpse: {dropItem.Name}");

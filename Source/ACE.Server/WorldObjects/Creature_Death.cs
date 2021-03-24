@@ -535,16 +535,12 @@ namespace ACE.Server.WorldObjects
                     if (corpse != null)
                     {
                         corpse.TryAddToInventory(wo);
-
-                        if (Enltrophy)
-                        {
-                            var pktrophy = WorldObjectFactory.CreateNewWorldObject("ace1000002-pktrophy");
-                            pktrophy.SetStackSize(1);
-                            corpse.TryAddToInventory(pktrophy);
-                            Enltrophy = false;
+                        var pktrophy = WorldObjectFactory.CreateNewWorldObject("ace1000002-pktrophy");
+                        pktrophy.SetStackSize(1);
+                        corpse.TryAddToInventory(pktrophy);
 
                             DoCantripLogging(killer, wo);
-                        }
+                      
                     }
                 }
             }
