@@ -559,7 +559,7 @@ namespace ACE.Server.Factories
                     player.LumAugDamageReductionRating = 5;
                     player.LumAugHealingRating = 5;
                     player.LumAugCritReductionRating = 5;
-                    player.LumAugDamageRating = 5;
+                    player.LumAugDamageRating = 10;
                     player.LumAugAllSkills = 10;
                     player.LumAugSkilledSpec = 5;
                     player.AugmentationExtraPackSlot = 1;
@@ -594,7 +594,7 @@ namespace ACE.Server.Factories
                     player.LumAugDamageReductionRating = 5;
                     player.LumAugHealingRating = 5;
                     player.LumAugCritReductionRating = 5;
-                    player.LumAugDamageRating = 5;
+                    player.LumAugDamageRating = 10;
                     player.LumAugAllSkills = 10;
                     player.LumAugSkilledSpec = 5;
                     player.AugmentationExtraPackSlot = 1;
@@ -629,7 +629,7 @@ namespace ACE.Server.Factories
                     player.LumAugDamageReductionRating = 5;
                     player.LumAugHealingRating = 5;
                     player.LumAugCritReductionRating = 5;
-                    player.LumAugDamageRating = 5;
+                    player.LumAugDamageRating = 10;
                     player.LumAugAllSkills = 10;
                     player.LumAugSkilledSpec = 5;
                     player.AugmentationExtraPackSlot = 1;
@@ -664,7 +664,7 @@ namespace ACE.Server.Factories
                     player.LumAugDamageReductionRating = 5;
                     player.LumAugHealingRating = 5;
                     player.LumAugCritReductionRating = 5;
-                    player.LumAugDamageRating = 5;
+                    player.LumAugDamageRating = 10;
                     player.LumAugAllSkills = 10;
                     player.LumAugSkilledSpec = 5;
                     player.AugmentationExtraPackSlot = 1;
@@ -699,7 +699,7 @@ namespace ACE.Server.Factories
                     player.LumAugDamageReductionRating = 5;
                     player.LumAugHealingRating = 5;
                     player.LumAugCritReductionRating = 5;
-                    player.LumAugDamageRating = 5;
+                    player.LumAugDamageRating = 10;
                     player.LumAugAllSkills = 10;
                     player.LumAugSkilledSpec = 5;
                     player.AugmentationExtraPackSlot = 1;
@@ -734,7 +734,7 @@ namespace ACE.Server.Factories
                     player.LumAugDamageReductionRating = 5;
                     player.LumAugHealingRating = 5;
                     player.LumAugCritReductionRating = 5;
-                    player.LumAugDamageRating = 5;
+                    player.LumAugDamageRating = 10;
                     player.LumAugAllSkills = 10;
                     player.LumAugSkilledSpec = 5;
                     player.AugmentationExtraPackSlot = 1;
