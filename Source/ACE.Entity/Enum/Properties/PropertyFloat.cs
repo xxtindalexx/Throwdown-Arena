@@ -221,6 +221,8 @@ namespace ACE.Entity.Enum.Properties
         TrophyTime                     = 9001,
         [ServerOnly]
         TrophyTimer                    = 9002,
+        [ServerOnly]
+        StreakTimer                    = 9006,
     }
 
     public static class PropertyFloatExtensions
