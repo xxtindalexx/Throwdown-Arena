@@ -4,6 +4,7 @@ using ACE.Common;
 using ACE.Entity.Enum;
 using ACE.Server.WorldObjects;
 using ACE.Server.WorldObjects.Entity;
+using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.Entity
 {
@@ -22,6 +23,9 @@ namespace ACE.Server.Entity
             // possible todo: does this only apply to players?
             // ie., can monsters still level up from skill usage, or killing players?
             // it was possible on release, but i think they might have removed that feature?
+
+            if (player.Level >= 275)
+                return;
 
             // ensure skill is at least trained
             if (skill.AdvancementClass < SkillAdvancementClass.Trained)
@@ -75,7 +79,7 @@ namespace ACE.Server.Entity
                 }
 
                 var maxLevel = Player.GetMaxLevel();
-                var remainingXP = player.GetRemainingXP(maxLevel).Value;
+                var remainingXP = player.GetRemainingXP(player.Level < 275 ? 274 : (uint)player.Level).Value;
 
                 if (totalXPGranted > remainingXP)
                 {
@@ -104,6 +108,8 @@ namespace ACE.Server.Entity
                 {
                     player.HandleActionRaiseSkill(skill.Skill, pp);
                 }
+
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"XP from skill usage = {pp:N0}", ChatMessageType.Broadcast));
             }
         }
 
