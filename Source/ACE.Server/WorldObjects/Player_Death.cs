@@ -213,9 +213,10 @@ namespace ACE.Server.WorldObjects
                         TryAddToInventory(pktrophy);
                     }
 
-                    if (killer != null && Level >= 75)
+                    if (killer != null && Level >= 275)
                     {
                         HandleKillStreak(killer);
+                        killer.GrantXP(3000000000, XpType.Kill, ShareType.None);
                     }
                 }
             }
