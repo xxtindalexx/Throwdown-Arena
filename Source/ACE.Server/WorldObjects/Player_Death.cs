@@ -216,10 +216,11 @@ namespace ACE.Server.WorldObjects
                     if (killer != null && Level >= 275)
                     {
                         HandleKillStreak(killer);
-                        killer.GrantXP(3000000000, XpType.Kill, ShareType.None);
+                        killer.GrantXP(1500000000, XpType.Kill, ShareType.None);
                     }
                 }
             }
+
 
             // wait for the death animation to finish
             var dieChain = new ActionChain();
