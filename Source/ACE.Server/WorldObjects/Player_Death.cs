@@ -216,7 +216,7 @@ namespace ACE.Server.WorldObjects
                     if (killer != null && Level >= 275)
                     {
                         HandleKillStreak(killer);
-                        killer.GrantXP(500000000, XpType.Kill, ShareType.None);
+                        killer.GrantLevelProportionalXp(0.10, 1, 100000000000000, false);
                     }
                 }
             }
