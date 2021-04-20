@@ -37,58 +37,26 @@ namespace ACE.Server.WorldObjects
             if (targetCreature != null)
             {
                 if (sourcePlayer != null)
-                {
+                { 
                     var weapon = sourcePlayer.GetEquippedMissileWeapon();
 
-                    sourcePlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{worldObject.ProjectileSource.Name}", ChatMessageType.Broadcast));
+                if (weapon != null && weapon.NumTimesTinkered > 0)
+                {
+                    var maxdmg = 0;
 
-                    if (weapon != null)
-                    {
-                        var maxdmg = 0;
+                    if (weapon.W_WeaponType == WeaponType.Bow)
+                        maxdmg = (int)PropertyManager.GetDouble("bow_damage").Item;
+                    else if (weapon.W_WeaponType == WeaponType.Crossbow)
+                        maxdmg += (int)PropertyManager.GetDouble("xbow_damage").Item;
+                    else if (weapon.W_WeaponType == WeaponType.Thrown)
+                        maxdmg += (int)PropertyManager.GetDouble("thrown_damage").Item;
+                    maxdmg *= weapon.NumTimesTinkered;
+                    var dmgrng = maxdmg/2;
+                    worldObject.Damage += dmgrng;
+                }
 
-                        if (weapon.NumTimesTinkered > 0 && weapon.W_WeaponType == WeaponType.Bow)
-                        {
-
-                            for (int i = 0; i < weapon.NumTimesTinkered; i++)
-                            {
-                                maxdmg += (int)PropertyManager.GetDouble("bow_damage").Item;
-                                //sourcePlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"Added {maxdmg}", ChatMessageType.Broadcast));
-                            }
-
-                            var dmgrng = ThreadSafeRandom.Next(1, maxdmg);
-                            //sourcePlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"Added {dmgrng:N0} extra dmg -- from {maxdmg}", ChatMessageType.Broadcast));
-                            worldObject.Damage += dmgrng;
-                        }
-                        if (weapon.NumTimesTinkered > 0 && weapon.W_WeaponType == WeaponType.Crossbow)
-                        {
-
-                            for (int i = 0; i < weapon.NumTimesTinkered; i++)
-                            {
-                                maxdmg += (int)PropertyManager.GetDouble("xbow_damage").Item;
-                                //sourcePlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"Added {maxdmg}", ChatMessageType.Broadcast));
-                            }
-
-                            var dmgrng = ThreadSafeRandom.Next(1, maxdmg);
-                            //sourcePlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"Added {dmgrng:N0} extra dmg -- from {maxdmg}", ChatMessageType.Broadcast));
-                            worldObject.Damage += dmgrng;
-                        }
-                        if (weapon.NumTimesTinkered > 0 && weapon.W_WeaponType == WeaponType.Thrown)
-                        {
-
-                            for (int i = 0; i < weapon.NumTimesTinkered; i++)
-                            {
-                                maxdmg += (int)PropertyManager.GetDouble("thrown_damage").Item;
-                                //sourcePlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"Added {maxdmg}", ChatMessageType.Broadcast));
-                            }
-
-                            var dmgrng = ThreadSafeRandom.Next(1, maxdmg);
-                            //sourcePlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"Added {dmgrng:N0} extra dmg -- from {maxdmg}", ChatMessageType.Broadcast));
-                            worldObject.Damage += dmgrng;
-                        }
-                    }
-
-                    // player damage monster or player
-                    damageEvent = sourcePlayer.DamageTarget(targetCreature, worldObject);
+                // player damage monster or player
+                damageEvent = sourcePlayer.DamageTarget(targetCreature, worldObject);
 
                     if (damageEvent != null && damageEvent.HasDamage)
                         worldObject.EnqueueBroadcast(new GameMessageSound(worldObject.Guid, Sound.Collision, 1.0f));

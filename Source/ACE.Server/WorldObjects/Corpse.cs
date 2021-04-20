@@ -107,7 +107,7 @@ namespace ACE.Server.WorldObjects
                 TimeToRot = EmptyDecayTime;
             else
                 // a player corpse decays after 5 mins * playerLevel with a minimum of 1 hour
-                TimeToRot = Math.Max(3600, (player.Level ?? 1) * 300);
+                TimeToRot = Math.Max(300, (player.Level ?? 1) * 1);
 
             var dtTimeToRot = DateTime.UtcNow.AddSeconds(TimeToRot ?? 0);
             var tsDecay = dtTimeToRot - DateTime.UtcNow;

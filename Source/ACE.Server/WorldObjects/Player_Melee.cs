@@ -198,6 +198,7 @@ namespace ACE.Server.WorldObjects
 
             Session.Network.EnqueueSend(new GameEventAttackDone(Session, WeenieError.ActionCancelled));
 
+            AttackTarget = null;
             MeleeTarget = null;
             MissileTarget = null;
 
@@ -215,7 +216,7 @@ namespace ACE.Server.WorldObjects
 
             if (Attacking)
                 AttackCancelled = true;
-            else
+            else if (AttackTarget != null)
                 OnAttackDone();
 
             PhysicsObj.cancel_moveto();
@@ -302,62 +303,23 @@ namespace ACE.Server.WorldObjects
                         return;
                     }
 
-                    if (weapon != null)
+                    int damageBonus = 0;
+                    if (weapon != null && weapon.NumTimesTinkered > 0)
                     {
-                        olddamage = (int)weapon.Damage;
-
-                        var maxdam = 0;
-
-                        if (weapon.NumTimesTinkered > 0 && weapon.WeaponSkill == Skill.HeavyWeapons)
-                        {
-                            for (int i = 0; i < weapon.NumTimesTinkered; i++)
-                            {
-                                maxdam += (int)PropertyManager.GetDouble("heavy_wepons_damage").Item;
-                            }
-
-                            var dmgrng = ThreadSafeRandom.Next(1, maxdam);
-                            weapon.Damage += dmgrng;
-                            //Session.Network.EnqueueSend(new GameMessageSystemChat($"Added {dmgrng:N0} extra dmg -- from {maxdam}", ChatMessageType.Broadcast));                            
-                        }
-                        if (weapon.NumTimesTinkered > 0 && weapon.WeaponSkill == Skill.LightWeapons)
-                        {
-                            for (int i = 0; i < weapon.NumTimesTinkered; i++)
-                            {
-                                maxdam += (int)PropertyManager.GetDouble("light_weapons_damage").Item;
-                            }
-
-                            var dmgrng = ThreadSafeRandom.Next(1, maxdam);
-                            weapon.Damage += dmgrng;
-                            //Session.Network.EnqueueSend(new GameMessageSystemChat($"Added {dmgrng:N0} extra dmg -- from {maxdam}", ChatMessageType.Broadcast));                            
-                        }
-                        if (weapon.NumTimesTinkered > 0 && weapon.WeaponSkill == Skill.FinesseWeapons)
-                        {
-                            for (int i = 0; i < weapon.NumTimesTinkered; i++)
-                            {
-                                maxdam += (int)PropertyManager.GetDouble("finesse_weapons_damage").Item;
-                            }
-
-                            var dmgrng = ThreadSafeRandom.Next(1, maxdam);
-                            weapon.Damage += dmgrng;
-                            //Session.Network.EnqueueSend(new GameMessageSystemChat($"Added {dmgrng:N0} extra dmg -- from {maxdam}", ChatMessageType.Broadcast));                            
-                        }
-                        if (weapon.NumTimesTinkered > 0 && weapon.WeaponSkill == Skill.TwoHandedCombat)
-                        {
-                            for (int i = 0; i < weapon.NumTimesTinkered; i++)
-                            {
-                                maxdam += (int)PropertyManager.GetDouble("twohanded_damage").Item;
-                            }
-
-                            var dmgrng = ThreadSafeRandom.Next(1, maxdam);
-                            weapon.Damage += dmgrng;
-                            //Session.Network.EnqueueSend(new GameMessageSystemChat($"Added {dmgrng:N0} extra dmg -- from {maxdam}", ChatMessageType.Broadcast));                            
-                        }
+                        int maxdam = 0;
+                        if (weapon.WeaponSkill == Skill.HeavyWeapons)
+                            maxdam = (int)PropertyManager.GetDouble("heavy_weapons_damage").Item;
+                        else if (weapon.WeaponSkill == Skill.LightWeapons)
+                            maxdam = (int)PropertyManager.GetDouble("light_weapons_damage").Item;
+                        else if (weapon.WeaponSkill == Skill.FinesseWeapons)
+                            maxdam = (int)PropertyManager.GetDouble("finesse_weapons_damage").Item;
+                        else if (weapon.WeaponSkill == Skill.TwoHandedCombat)
+                            maxdam = (int)PropertyManager.GetDouble("twohanded_damage").Item;
+                        maxdam *= weapon.NumTimesTinkered;
+                        damageBonus = maxdam / 2;
                     }
 
-                    var damageEvent = DamageTarget(creature, weapon);
-
-                    if (weapon != null)
-                        weapon.Damage = olddamage;
+                    var damageEvent = DamageTarget(creature, weapon, damageBonus);
 
                     // handle target procs
                     if (damageEvent != null && damageEvent.HasDamage && !targetProc)

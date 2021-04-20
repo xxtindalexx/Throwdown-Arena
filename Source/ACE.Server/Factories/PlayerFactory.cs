@@ -553,7 +553,7 @@ namespace ACE.Server.Factories
                     player.AugmentationSkilledMissile = 1;
                     player.AugmentationIncreasedSpellDuration = 5;
                     player.LumAugSurgeChanceRating = 5;
-                    player.LumAugCritDamageRating = 5;
+                    player.LumAugCritDamageRating = 10;
                     player.LumAugItemManaUsage = 5;
                     player.LumAugItemManaGain = 5;
                     player.LumAugDamageReductionRating = 5;
@@ -588,7 +588,7 @@ namespace ACE.Server.Factories
                     player.AugmentationSkilledMissile = 1;
                     player.AugmentationIncreasedSpellDuration = 5;
                     player.LumAugSurgeChanceRating = 5;
-                    player.LumAugCritDamageRating = 5;
+                    player.LumAugCritDamageRating = 10;
                     player.LumAugItemManaUsage = 5;
                     player.LumAugItemManaGain = 5;
                     player.LumAugDamageReductionRating = 5;
@@ -623,7 +623,7 @@ namespace ACE.Server.Factories
                     player.AugmentationSkilledMissile = 1;
                     player.AugmentationIncreasedSpellDuration = 5;
                     player.LumAugSurgeChanceRating = 5;
-                    player.LumAugCritDamageRating = 5;
+                    player.LumAugCritDamageRating = 10;
                     player.LumAugItemManaUsage = 5;
                     player.LumAugItemManaGain = 5;
                     player.LumAugDamageReductionRating = 5;
@@ -658,7 +658,7 @@ namespace ACE.Server.Factories
                     player.AugmentationSkilledMissile = 1;
                     player.AugmentationIncreasedSpellDuration = 5;
                     player.LumAugSurgeChanceRating = 5;
-                    player.LumAugCritDamageRating = 5;
+                    player.LumAugCritDamageRating = 10;
                     player.LumAugItemManaUsage = 5;
                     player.LumAugItemManaGain = 5;
                     player.LumAugDamageReductionRating = 5;
@@ -693,7 +693,7 @@ namespace ACE.Server.Factories
                     player.AugmentationSkilledMissile = 1;
                     player.AugmentationIncreasedSpellDuration = 5;
                     player.LumAugSurgeChanceRating = 5;
-                    player.LumAugCritDamageRating = 5;
+                    player.LumAugCritDamageRating = 10;
                     player.LumAugItemManaUsage = 5;
                     player.LumAugItemManaGain = 5;
                     player.LumAugDamageReductionRating = 5;
@@ -728,7 +728,7 @@ namespace ACE.Server.Factories
                     player.AugmentationSkilledMissile = 1;
                     player.AugmentationIncreasedSpellDuration = 5;
                     player.LumAugSurgeChanceRating = 5;
-                    player.LumAugCritDamageRating = 5;
+                    player.LumAugCritDamageRating = 10;
                     player.LumAugItemManaUsage = 5;
                     player.LumAugItemManaGain = 5;
                     player.LumAugDamageReductionRating = 5;

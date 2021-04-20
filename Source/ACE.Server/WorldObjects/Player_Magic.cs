@@ -534,17 +534,7 @@ namespace ACE.Server.WorldObjects
                 {
                    (SpellCategory)243, (SpellCategory)244, (SpellCategory)245, (SpellCategory)246, (SpellCategory)247, (SpellCategory)248, (SpellCategory)249
                 };
-
-            if (Time.GetUnixTime() < StreakTimer && StreakSpells.Contains(spell.Category))
-            {
-                if (Time.GetUnixTime() > StreakTimer && castingPreCheckStatus == CastingPreCheckStatus.CastFailed)
-                    RemoveProperty(PropertyFloat.StreakTimer);
-                else
-                {
-                    castingPreCheckStatus = CastingPreCheckStatus.CastFailed;
-                    Session.Network.EnqueueSend(new GameMessageSystemChat($"Streak Spamming is for pussies", ChatMessageType.Magic));
-                }
-            }
+            
 
             // limit casting time between war and void
             if (spell.School == MagicSchool.VoidMagic && LastSuccessCast_School == MagicSchool.WarMagic ||
