@@ -102,7 +102,7 @@ namespace ACE.Server.Entity
         // creature defender
         public Quadrant Quadrant;
 
-        public bool IgnoreMagicArmor =>  (Weapon?.IgnoreMagicArmor ?? false) || (Attacker?.IgnoreMagicArmor ?? false);      // ignores impen / banes
+        public bool IgnoreMagicArmor => (Weapon?.IgnoreMagicArmor ?? false) || (Attacker?.IgnoreMagicArmor ?? false);      // ignores impen / banes
 
         public bool IgnoreMagicResist => (Weapon?.IgnoreMagicResist ?? false) || (Attacker?.IgnoreMagicResist ?? false);    // ignores life armor / prots
 
@@ -263,9 +263,15 @@ namespace ACE.Server.Entity
                     // recklessness excluded from crits
                     RecklessnessMod = 1.0f;
                     DamageRatingMod = Creature.AdditiveCombine(DamageRatingBaseMod, SneakAttackMod, HeritageMod);
-                    var damageBonusMod = WorldObject.GetCriticalStrikeDamageMod(attackSkill);
-                    DamageBeforeMitigation = BaseDamageMod.MaxDamage * AttributeMod * PowerMod * SlayerMod * DamageRatingMod * (CriticalDamageMod + damageBonusMod);
+                    DamageBeforeMitigation = BaseDamageMod.MaxDamage * AttributeMod * PowerMod * SlayerMod * DamageRatingMod * CriticalDamageMod;
                 }
+            }
+
+            if (playerAttacker != null && playerDefender != null && Weapon != null)
+            {
+                var multi = (float?)Weapon.GetProperty(ACE.Entity.Enum.Properties.PropertyFloat.ForedawnPvpDamageMulti);
+                if (multi.HasValue)
+                    DamageBeforeMitigation *= multi.Value;
             }
 
             // armor rending and cleaving
@@ -287,7 +293,7 @@ namespace ACE.Server.Entity
                 Armor = attacker.GetArmorLayers(playerDefender, BodyPart);
 
                 // get armor modifiers
-                ArmorMod = attacker.GetArmorMod(DamageType, Armor, Weapon, ignoreArmorMod);
+                ArmorMod = attacker.GetArmorMod(playerDefender, DamageType, Armor, Weapon, ignoreArmorMod);
             }
             else
             {
@@ -306,7 +312,7 @@ namespace ACE.Server.Entity
             }
 
             if (Weapon != null && Weapon.HasImbuedEffect(ImbuedEffectType.IgnoreAllArmor))
-                ArmorMod = 1.0f;
+                ArmorMod = (float)PropertyManager.GetDouble("phantom_damage_multi", 1.0, false).Item;
 
             // get resistance modifiers
             WeaponResistanceMod = WorldObject.GetWeaponResistanceModifier(attacker, attackSkill, DamageType);
@@ -384,6 +390,7 @@ namespace ACE.Server.Entity
                 DamageType = attacker.GetDamageType(false, CombatType.Melee);
 
             // TODO: combat maneuvers for player?
+            BaseDamageMod = attacker.GetBaseDamageMod(DamageSource);
             BaseDamageMod.DamageBonus += damageBonus;
 
             // some quest bows can have built-in damage bonus

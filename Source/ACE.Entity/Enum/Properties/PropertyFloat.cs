@@ -223,6 +223,9 @@ namespace ACE.Entity.Enum.Properties
         TrophyTimer                    = 9002,
         [ServerOnly]
         StreakTimer                    = 9006,
+
+        /***** FOREDAWN CUSTOMS *****/
+        ForedawnPvpDamageMulti         = 52000
     }
 
     public static class PropertyFloatExtensions
