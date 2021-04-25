@@ -514,6 +514,7 @@ namespace ACE.Server.Managers
                 ("chat_disable_trade", new Property<bool>(false, "disable trade global chat channel")),
                 ("chat_echo_only", new Property<bool>(false, "global chat returns to sender only")),
                 ("chat_echo_reject", new Property<bool>(false, "global chat returns to sender on reject")),
+                ("chat_inform_reject", new Property<bool>(true, "global chat informs sender on reason for reject")),
                 ("chat_log_abuse", new Property<bool>(false, "log abuse chat")),
                 ("chat_log_admin", new Property<bool>(false, "log admin chat")),
                 ("chat_log_advocate", new Property<bool>(false, "log advocate chat")),
@@ -571,7 +572,8 @@ namespace ACE.Server.Managers
                 ("rares_real_time_v2", new Property<bool>(false, "chances for a rare to be generated on rare eligible kills are modified by the last time one was found per each player, rares_max_days_between defines maximum days before guaranteed rare generation")),
                 ("runrate_add_hooks", new Property<bool>(false, "if TRUE, adds some runrate hooks that were missing from retail (exhaustion done, raise skill/attribute")),
                 ("reportbug_enabled", new Property<bool>(false, "toggles the /reportbug player command")),
-                ("require_spell_comps", new Property<bool>(true, "if FALSE spell components are no longer required to be in inventory to cast spells. defaults to enabled, as in retail")),
+                ("require_spell_comps", new Property<bool>(true, "if FALSE, spell components are no longer required to be in inventory to cast spells. defaults to enabled, as in retail")),
+                ("safe_spell_comps", new Property<bool>(false, "if TRUE, disables spell component burning for everyone")),
                 ("salvage_handle_overages", new Property<bool>(false, "in retail, if 2 salvage bags were combined beyond 100 structure, the overages would be lost")),
                 ("show_dat_warning", new Property<bool>(false, "if TRUE, will alert player (dat_warning_msg) when client attempts to download from server and boot them from game, disabled by default")),
                 ("show_dot_messages", new Property<bool>(false, "enabled, shows combat messages for DoT damage ticks. defaults to disabled, as in retail")),
@@ -582,6 +584,7 @@ namespace ACE.Server.Managers
                 ("suicide_instant_death", new Property<bool>(false, "if enabled, @die command kills player instantly. defaults to disabled, as in retail")),
                 ("taboo_table", new Property<bool>(true, "if enabled, taboo table restricts player names during character creation")),
                 ("tailoring_intermediate_uieffects", new Property<bool>(false, "If true, tailoring intermediate icons retain the magical/elemental highlight of the original item")),
+                ("trajectory_alt_solver", new Property<bool>(false, "use the alternate trajectory solver for missiles and spell projectiles")),
                 ("universal_masteries", new Property<bool>(true, "if TRUE, matches end of retail masteries - players wielding almost any weapon get +5 DR, except if the weapon \"seems tough to master\". " +
                                                                  "if FALSE, players start with mastery of 1 melee and 1 ranged weapon type based on heritage, and can later re-select these 2 masteries")),
                 ("use_generator_rotation_offset", new Property<bool>(true, "enables or disables using the generator's current rotation when offseting relative positions")),
@@ -589,8 +592,19 @@ namespace ACE.Server.Managers
                 ("use_wield_requirements", new Property<bool>(true, "disable this to bypass wield requirements. mostly for dev debugging")),
                 ("version_info_enabled", new Property<bool>(false, "toggles the /aceversion player command")),
                 ("vendor_shop_uses_generator", new Property<bool>(false, "enables or disables vendors using generator system in addition to createlist to create artificial scarcity")),
-                ("world_closed", new Property<bool>(false, "enable this to startup world as a closed to players world"))
-                );
+                ("world_closed", new Property<bool>(false, "enable this to startup world as a closed to players world")),
+
+                ("dispel_rares_pvp", new Property<bool>(false, "If true, disables rare gem buffs from being usable in PvP.")),
+
+                ("player_trace", new Property<bool>(false, "Enable this for enhanced tracing of player activity.")),
+                ("player_trace_death", new Property<bool>(true, "If player_trace is enabled, toggles logging of deaths.")),
+                ("player_trace_teleport", new Property<bool>(true, "If player_trace is enabled, toggles logging of teleportation (travel) of any kind.")),
+                ("player_trace_quest", new Property<bool>(true, "If player_trace is enabled, toggles logging of quest completions.")),
+                ("player_trace_xp", new Property<bool>(true, "If player_trace is enabled, toggles logging of xp rewards.")),
+                ("player_trace_lum", new Property<bool>(true, "If player_trace is enabled, toggles logging of luminance rewards.")),
+                ("player_trace_item_reward", new Property<bool>(true, "If player_trace is enabled, toggles logging of item rewards.")),
+                ("player_trace_item_give", new Property<bool>(true, "If player_trace is enabled, toggles logging of giving of items."))
+            );
 
         public static readonly ReadOnlyDictionary<string, Property<long>> DefaultLongProperties =
             DictOf(
@@ -606,7 +620,9 @@ namespace ACE.Server.Managers
                 ("player_save_interval", new Property<long>(300, "the number of seconds between automatic player saves")),
                 ("rares_max_days_between", new Property<long>(45, "for rares_real_time_v2: the maximum number of days a player can go before a rare is generated on rare eligible creature kills")),
                 ("rares_max_seconds_between", new Property<long>(5256000, "for rares_real_time: the maximum number of seconds a player can go before a second chance at a rare is allowed on rare eligible creature kills that did not generate a rare")),
-                ("teleport_visibility_fix", new Property<long>(0, "Fixes some possible issues with invisible players and mobs. 0 = default / disabled, 1 = players only, 2 = creatures, 3 = all world objects"))
+                ("teleport_visibility_fix", new Property<long>(0, "Fixes some possible issues with invisible players and mobs. 0 = default / disabled, 1 = players only, 2 = creatures, 3 = all world objects")),
+                ("windup_turn_retry_number", new Property<long>(0, "Fixes turning forever during windup. 0 = default / disabled, 1 = retry one time, 2 = retry two times, ...")),
+                ("pvp_damage_cap", new Property<long>(450, "The cap for PvP damage per strike"))
                 );
 
         public static readonly ReadOnlyDictionary<string, Property<double>> DefaultDoubleProperties =
@@ -629,6 +645,7 @@ namespace ACE.Server.Managers
                 ("ignore_magic_armor_pvp_scalar", new Property<double>(1.0, "Scales the effectiveness of IgnoreMagicArmor (ie. hollow weapons) in pvp battles. 1.0 = full effectiveness / ignore all enchantments on armor (default), 0.5 = half effectiveness / use half enchantments from armor, 0.0 = no effectiveness / use full enchantments from armor")),
                 ("ignore_magic_resist_pvp_scalar", new Property<double>(1.0, "Scales the effectiveness of IgnoreMagicResist (ie. hollow weapons) in pvp battles. 1.0 = full effectiveness / ignore all resistances from life enchantments (default), 0.5 = half effectiveness / use half resistances from life enchantments, 0.0 = no effectiveness / use full resistances from life enchantments")),
                 ("luminance_modifier", new Property<double>(1.0, "Scales the amount of luminance received by players")),
+                ("melee_max_angle", new Property<double>(0.0, "for melee players, the maximum angle before a TurnTo is required. retail appeared to have required a TurnTo even for the smallest of angle offsets.")),
                 ("mob_awareness_range", new Property<double>(1.0, "Scales the distance the monsters become alerted and aggro the players")),
                 ("pk_new_character_grace_period", new Property<double>(300, "the number of seconds, in addition to pk_respite_timer, that a player killer is set to non-player killer status after first exiting training academy")),
                 ("pk_respite_timer", new Property<double>(300, "the number of seconds that a player killer is set to non-player killer status after dying to another player killer")),
@@ -645,33 +662,23 @@ namespace ACE.Server.Managers
                 ("war_streak_spell_damage_modifier", new Property<double>(1.0, "")),
                 ("void_streak_spell_damage_modifier", new Property<double>(1.0, "")),
                 ("void_projectile_modifier", new Property<double>(1.0, "scales void projectile dmg")),
-                ("imbue_armor_rend_melee_scalar", new Property<double>(1.0, "Scales the effectiveness of Armor Rending for melee attacks at roughly max base skill. 1.0 = no effect. 2.0 = double damage etc")),
-                ("imbue_armor_rend_missile_scalar", new Property<double>(1.0, "Scales the effectiveness of Armor Rending for missile attacks at roughly max base skill. 1.0 = no effect. 2.0 = double damage etc.")),
                 ("imbue_crippling_blow_melee_scalar", new Property<double>(6.0, "Scales the effectiveness of Crippling Blow for melee attacks at roughly max base skill. 1.0 = no effect. 2.0 = double damage on crit at max base skill. 4.0 = 4x damage etc. ACE DEFAULT IS 6.0")),
                 ("imbue_crippling_blow_magic_scalar", new Property<double>(6.0, "Scales the effectiveness of Crippling Blow for magic attacks at roughly max base skill. 1.0 = no effect. 2.0 = double damage on crit at max base skill. 4.0 = 4x damage etc.  ACE DEFAULT IS 6.0")),
                 ("imbue_crippling_blow_missile_scalar", new Property<double>(6.0, "Scales the effectiveness of Crippling Blow for missile attacks at roughly max base skill. 1.0 = no effect. 2.0 = double damage on crit at max base skill. 4.0 = 4x damage etc.  ACE DEFAULT IS 6.0")),
-                ("imbue_critical_strike_magic_scalar", new Property<double>(1.0, "Scales the effectiveness of Critical Strike for magic attacks at roughly max base skill. 1.0 = no effect. 2.0 = double damage on crit at max base skill. 4.0 = 4x damage etc.")),
-                ("imbue_critical_strike_melee_scalar", new Property<double>(1.0, "Scales the effectiveness of Critical Strike for melee attacks at roughly max base skill. 1.0 = no effect. 2.0 = double damage on crit at max base skill. 4.0 = 4x damage etc.")),
-                ("imbue_critical_strike_missile_scalar", new Property<double>(1.0, "Scales the effectiveness of Critical Strike for missile attacks at roughly max base skill. 1.0 = no effect. 2.0 = double damage on crit at max base skill. 4.0 = 4x damage etc.")),
-                ("imbue_critical_strike_magic_rate", new Property<double>(1.0, "Scales the effectiveness of Critical Strike Imbue for magic attacks at roughly max base skill. 1.0 = default effect. 2.0 = Crit chance double of what the player normally would have with a CS weapon")),
-                ("imbue_critical_strike_melee_rate", new Property<double>(1.0, "Scales the effectiveness of Critical Strike Imbue for melee attacks at roughly max base skill. 1.0 = default effect. 2.0 = Crit chance double of what the player normally would have with a CS weapon")),
-                ("imbue_critical_strike_missile_rate", new Property<double>(1.0, "Scales the effectiveness of Critical Strike Imbue for missile attacks at roughly max base skill. 1.0 = default effect. 2.0 = Crit chance double of what the player normally would have with a CS weapon")),
+                ("imbue_critical_strike_magic_scalar", new Property<double>(1.0, "Scales the effectiveness of Critical Strike Imbue for magic attacks at roughly max base skill. 1.0 = default effect. 2.0 = Crit chance double of what the player normally would have with a CS weapon")),
+                ("imbue_critical_strike_melee_scalar", new Property<double>(1.0, "Scales the effectiveness of Critical Strike Imbue for melee attacks at roughly max base skill. 1.0 = default effect. 2.0 = Crit chance double of what the player normally would have with a CS weapon")),
+                ("imbue_critical_strike_missile_scalar", new Property<double>(1.0, "Scales the effectiveness of Critical Strike Imbue for missile attacks at roughly max base skill. 1.0 = default effect. 2.0 = Crit chance double of what the player normally would have with a CS weapon")),
                 ("pvp_melee_weapon_damage_modifier", new Property<double>(1.0, "Scales melee weapon damage for PvP")),
                 ("pvp_missile_weapon_damage_modifier", new Property<double>(1.0, "Scales missile weapon damage for PvP")),
                 ("consumable_speed_modifier", new Property<double>(1.0, "Scales consumable animation speed. Allows players to eat or drink at a faster rate if set to a higher number.")),
+                ("cloak_max_proc_rate", new Property<double>(0.25, "Cap cloak proc chance to this percentage (1.0 will effectively use the standard ACE proc rate).")),
 
-                // Old/Unused Properties.
-                ("bow_mod", new Property<double>(10, "The amount of flat damage added to arrows from missile weapons. Must always be a whole integer. Default is 10.")),
-                ("melee_mod", new Property<double>(10, "The amount of flat damage added to melee weapons. Must always be a whole integer. Default is 10.")),
-                ("melee_cb_crit_rate", new Property<double>(0.05, "The amount that a melee weapon with Crippling Blow will land a critical strike. Default is 0.05(5%). A value of 1.00 would be 100% crit strike chance. be CAREFUL")),
-                ("missile_cb_crit_rate", new Property<double>(0.05, "The amount that a missile weapon with Crippling Blow will land a critical strike. Default is 0.05(5%). A value of 1.00 would be 100% crit strike chance. be CAREFUL")),
-                ("melee_cb_damage", new Property<double>(0.50, "The extra multiplier amount that melee weapons will get when imbued with CB. Default is 0.50(50%). default CB values are 6x maximum, this modifier can take it above that, 1.00 would be 100% increase(12x).")),
-                ("missile_cb_damage", new Property<double>(0.50, "The extra multiplier amount that missile weapons will get when imbued with CB. Default is 0.50(50%). default CB values are 6x maximum, this modifier can take it above that, 1.00 would be 100% increase(12x).")),
-                ("melee_cs_critdamage", new Property<double>(0.5, "The amount of extra crit damage multiplier that melee weapons imbued with CS will get. Default is 0.5(50%)")),
-                ("missile_cs_critdamage", new Property<double>(0.5, "The amount of extra crit damage multiplier that missile weapons imbued with CS will get. Default is 0.5(50%)")),
+                ("xbow_cb_crit_rate", new Property<double>(0.05, "The amount that an xbow with Crippling Blow will land a critical strike. Default is 0.05(5%). A value of 1.00 would be 100% crit strike chance. be CAREFUL")),
+                ("bow_cb_crit_rate", new Property<double>(0.05, "The amount that a bow with Crippling Blow will land a critical strike. Default is 0.05(5%). A value of 1.00 would be 100% crit strike chance. be CAREFUL")),
+                ("thrown_cb_crit_rate", new Property<double>(0.05, "The amount that a thrown weapon with Crippling Blow will land a critical strike. Default is 0.05(5%). A value of 1.00 would be 100% crit strike chance. be CAREFUL")),
 
-               // CB Multiplier Properties.
-               ("heavy_cb_damage", new Property<double>(0, "The extra crit rating Heavy Weapons will get when imbued with CB. For every 1.0 added to this number, this equals 100 crit rating.")),
+                // CB Multiplier Properties.
+                ("heavy_cb_damage", new Property<double>(0, "The extra crit rating Heavy Weapons will get when imbued with CB. For every 1.0 added to this number, this equals 100 crit rating.")),
                 ("light_cb_damage", new Property<double>(0, "The extra crit rating Light Weapons will get when imbued with CB. For every 1.0 added to this number, this equals 100 crit rating.")),
                 ("finesse_cb_damage", new Property<double>(0, "The extra crit rating Finesse Weapons will get when imbued with CB. For every 1.0 added to this number, this equals 100 crit rating.")),
                 ("twohanded_cb_damage", new Property<double>(0, "The extra crit rating Two-Handed Weapons will get when imbued with CB. For every 1.0 added to this number, this equals 100 crit rating.")),
@@ -685,10 +692,6 @@ namespace ACE.Server.Managers
                 ("light_cb_crit_rate", new Property<double>(0.05, "The amount that a light weapon with Crippling Blow will land a critical strike. Default is 0.05(5%). A value of 1.00 would be 100% crit strike chance. be CAREFUL")),
                 ("finesse_cb_crit_rate", new Property<double>(0.05, "The amount that a finesse weapon with Crippling Blow will land a critical strike. Default is 0.05(5%). A value of 1.00 would be 100% crit strike chance. be CAREFUL")),
                 ("twohanded_cb_crit_rate", new Property<double>(0.05, "The amount that a twohanded weapon with Crippling Blow will land a critical strike. Default is 0.05(5%). A value of 1.00 would be 100% crit strike chance. be CAREFUL")),
-
-                ("xbow_cb_crit_rate", new Property<double>(0.05, "The amount that an xbow with Crippling Blow will land a critical strike. Default is 0.05(5%). A value of 1.00 would be 100% crit strike chance. be CAREFUL")),
-                ("bow_cb_crit_rate", new Property<double>(0.05, "The amount that a bow with Crippling Blow will land a critical strike. Default is 0.05(5%). A value of 1.00 would be 100% crit strike chance. be CAREFUL")),
-                ("thrown_cb_crit_rate", new Property<double>(0.05, "The amount that a thrown weapon with Crippling Blow will land a critical strike. Default is 0.05(5%). A value of 1.00 would be 100% crit strike chance. be CAREFUL")),
 
                 // CS Critical Multiplier Properties
                 ("heavy_cs_damage", new Property<double>(0, "The extra crit rating Heavy Weapons will get when imbued with CS. For every 1.0 added to this number, this equals 100 crit rating.")),
@@ -707,7 +710,12 @@ namespace ACE.Server.Managers
 
                 ("xbow_damage", new Property<double>(0, "The amount of flat damage added to light weapons per tink. Note for each damage event the added damage will be randomized between 1 and this value. Default is 0.")),
                 ("bow_damage", new Property<double>(0, "The amount of flat damage added to finesse weapons per tink. Note for each damage event the added damage will be randomized between 1 and this value. Default is 0.")),
-                ("thrown_damage", new Property<double>(0, "The amount of flat damage added to twohanded weapons per tink. Note for each damage event the added damage will be randomized between 1 and this value. Default is 0."))
+                ("thrown_damage", new Property<double>(0, "The amount of flat damage added to twohanded weapons per tink. Note for each damage event the added damage will be randomized between 1 and this value. Default is 0.")),
+
+                ("phantom_shield_damage_multi", new Property<double>(1.0, "The damage multiplier done by phantom weapons vs shields. Default is 1.0x")),
+                ("phantom_damage_multi", new Property<double>(1.0, "The damage multiplier done by phantom weapons vs armor. Default is 1.0x")),
+
+                ("logoff_timer", new Property<double>(5.0, "The mandatory logoff timer (not flagged for pvp, measured in seconds)."))
                 );
 
         public static readonly ReadOnlyDictionary<string, Property<string>> DefaultStringProperties =
@@ -717,7 +725,9 @@ namespace ACE.Server.Managers
                 ("popup_header", new Property<string>("Welcome to Asheron's Call!", "Welcome message displayed when you log in")),
                 ("popup_welcome", new Property<string>("To begin your training, speak to the Society Greeter. Walk up to the Society Greeter using the 'W' key, then double-click on her to initiate a conversation.", "Welcome message popup in training halls")),
                 ("popup_motd", new Property<string>("", "Popup message of the day")),
-                ("server_motd", new Property<string>("", "Server message of the day"))
+                ("server_motd", new Property<string>("", "Server message of the day")),
+                ("turbine_chat_webhook", new Property<string>("", "Webhook to be used for turbine chat. This is for copying ingame general chat channels to a Discord channel.")),
+                ("turbine_chat_webhook_audit", new Property<string>("", "Webhook to be used for ingame audit log."))
                 );
     }
 }

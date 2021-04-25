@@ -189,6 +189,8 @@ namespace ACE.Entity.Enum.Properties
         SkillTemplesTimerReset           = 9009,
         [ServerOnly]
         Trophy                           = 9105,
+
+        ForedawnAmethystApplied          = 52001
     }
 
     public static class PropertyBoolExtensions

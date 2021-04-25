@@ -8,6 +8,7 @@ using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
+using log4net;
 
 namespace ACE.Server.Entity
 {
@@ -51,84 +52,8 @@ namespace ACE.Server.Entity
         // https://asheron.fandom.com/wiki/Aetheria
 
         public const uint AetheriaBlue = 42635;
-        public const uint AetheriaBlueDefDestruction = 9042635;
-        public const uint AetheriaBlueDefAffliction = 9142635;
-        public const uint AetheriaBlueDefProtection = 9242635;
-        public const uint AetheriaBlueDefFestering = 9342635;
-        public const uint AetheriaBlueDefRegeneration = 9442635;
-        public const uint AetheriaBlueDesDestruction = 8042635;
-        public const uint AetheriaBlueDesAffliction = 8142635;
-        public const uint AetheriaBlueDesProtection = 8242635;
-        public const uint AetheriaBlueDesFestering = 8342635;
-        public const uint AetheriaBlueDesRegeneration = 8442635;
-        public const uint AetheriaBlueFurDesrtuction = 7042635;
-        public const uint AetheriaBlueFurAffliction = 7142635;
-        public const uint AetheriaBlueFurProtection = 7242635;
-        public const uint AetheriaBlueFurFestering = 7342635;
-        public const uint AetheriaBlueFurRegeneration = 7442635;
-        public const uint AetheriaBlueGroDesrtuction = 6042635;
-        public const uint AetheriaBlueGroAffliction = 6142635;
-        public const uint AetheriaBlueGroProtection = 6242635;
-        public const uint AetheriaBlueGroFestering = 6342635;
-        public const uint AetheriaBlueGroRegeneration = 6442635;
-        public const uint AetheriaBlueVigDesrtuction = 5042635;
-        public const uint AetheriaBlueVigAffliction = 5142635;
-        public const uint AetheriaBlueVigProtection = 5242635;
-        public const uint AetheriaBlueVigFestering = 5342635;
-        public const uint AetheriaBlueVigRegeneration = 5442635;
         public const uint AetheriaRed = 42636;
-        public const uint AetheriaRedDefDestruction = 9042636;
-        public const uint AetheriaRedDefAffliction = 9142636;
-        public const uint AetheriaRedDefProtection = 9242636;
-        public const uint AetheriaRedDefFestering = 9342636;
-        public const uint AetheriaRedDefRegeneration = 9442636;
-        public const uint AetheriaRedDesDestruction = 8042636;
-        public const uint AetheriaRedDesAffliction = 8142636;
-        public const uint AetheriaRedDesProtection = 8242636;
-        public const uint AetheriaRedDesFestering = 8342636;
-        public const uint AetheriaRedDesRegeneration = 8442636;
-        public const uint AetheriaRedFurDesrtuction = 7042636;
-        public const uint AetheriaRedFurAffliction = 7142636;
-        public const uint AetheriaRedFurProtection = 7242636;
-        public const uint AetheriaRedFurFestering = 7342636;
-        public const uint AetheriaRedFurRegeneration = 7442636;
-        public const uint AetheriaRedGroDesrtuction = 6042636;
-        public const uint AetheriaRedGroAffliction = 6142636;
-        public const uint AetheriaRedGroProtection = 6242636;
-        public const uint AetheriaRedGroFestering = 6342636;
-        public const uint AetheriaRedGroRegeneration = 6442636;
-        public const uint AetheriaRedVigDesrtuction = 5042636;
-        public const uint AetheriaRedVigAffliction = 5142636;
-        public const uint AetheriaRedVigProtection = 5242636;
-        public const uint AetheriaRedVigFestering = 5342636;
-        public const uint AetheriaRedVigRegeneration = 5442636;
         public const uint AetheriaYellow = 42637;
-        public const uint AetheriaYellowDefDestruction = 9042637;
-        public const uint AetheriaYellowDefAffliction = 9142637;
-        public const uint AetheriaYellowDefProtection = 9242637;
-        public const uint AetheriaYellowDefFestering = 9342637;
-        public const uint AetheriaYellowDefRegeneration = 9442637;
-        public const uint AetheriaYellowDesDestruction = 8042637;
-        public const uint AetheriaYellowDesAffliction = 8142637;
-        public const uint AetheriaYellowDesProtection = 8242637;
-        public const uint AetheriaYellowDesFestering = 8342637;
-        public const uint AetheriaYellowDesRegeneration = 8442637;
-        public const uint AetheriaYellowFurDesrtuction = 7042637;
-        public const uint AetheriaYellowFurAffliction = 7142637;
-        public const uint AetheriaYellowFurProtection = 7242637;
-        public const uint AetheriaYellowFurFestering = 7342637;
-        public const uint AetheriaYellowFurRegeneration = 7442637;
-        public const uint AetheriaYellowGroDesrtuction = 6042637;
-        public const uint AetheriaYellowGroAffliction = 6142637;
-        public const uint AetheriaYellowGroProtection = 6242637;
-        public const uint AetheriaYellowGroFestering = 6342637;
-        public const uint AetheriaYellowGroRegeneration = 6442637;
-        public const uint AetheriaYellowVigDesrtuction = 5042637;
-        public const uint AetheriaYellowVigAffliction = 5142637;
-        public const uint AetheriaYellowVigProtection = 5242637;
-        public const uint AetheriaYellowVigFestering = 5342637;
-        public const uint AetheriaYellowVigRegeneration = 5442637;
-
 
         public const uint AetheriaManaStone = 42645;
 
@@ -164,7 +89,8 @@ namespace ACE.Server.Entity
 
         public static bool IsAetheria(uint wcid)
         {
-            return wcid == 9042635 || wcid == 9142635 || wcid == 9242635 || wcid == 9342635 || wcid == 9442635 || wcid == 8042635 || wcid == 8142635 || wcid == 8242635 || wcid == 8342635 || wcid == 8442635 || wcid == 7042635 || wcid == 7142635 || wcid == 7242635 || wcid == 7342635 || wcid == 7442635 || wcid == 6042635 || wcid == 6142635 || wcid == 6242635 || wcid == 6342635 || wcid == 6442635 || wcid == 5042635 || wcid == 5142635 || wcid == 5242635 || wcid == 5342635 || wcid == 5442635 || wcid == 9042636 || wcid == 9142636 || wcid == 9242636 || wcid == 9342636 || wcid == 9442636 || wcid == 8042636 || wcid == 8142636 || wcid == 8242636 || wcid == 8342636 || wcid == 8442636 || wcid == 7042636 || wcid == 7142636 || wcid == 7242636 || wcid == 7342636 || wcid == 7442636 || wcid == 6042636 || wcid == 6142636 || wcid == 6242636 || wcid == 6342636 || wcid == 6442636 || wcid == 5042636 || wcid == 5142636 || wcid == 5242636 || wcid == 5342636 || wcid == 5442636 || wcid == 9042637 || wcid == 9142637 || wcid == 9242637 || wcid == 9342637 || wcid == 9442637 || wcid == 8042637 || wcid == 8142637 || wcid == 8242637 || wcid == 8342637 || wcid == 8442637 || wcid == 7042637 || wcid == 7142637 || wcid == 7242637 || wcid == 7342637 || wcid == 7442637 || wcid == 6042637 || wcid == 6142637 || wcid == 6242637 || wcid == 6342637 || wcid == 6442637 || wcid == 5042637 || wcid == 5142637 || wcid == 5242637 || wcid == 5342637 || wcid == 5442637;
+            return wcid == AetheriaBlue || wcid == AetheriaYellow || wcid == AetheriaRed ||
+            wcid == 1910505 || wcid == 1910506 || wcid == 1910507;
         }
 
         public static AetheriaColor? GetColor(uint wcid)
@@ -173,159 +99,9 @@ namespace ACE.Server.Entity
             {
                 case AetheriaBlue:
                     return AetheriaColor.Blue;
-                case AetheriaBlueDefDestruction:
-                    return AetheriaColor.Blue;
-                case AetheriaBlueDefAffliction:
-                    return AetheriaColor.Blue;
-                case AetheriaBlueDefProtection:
-                    return AetheriaColor.Blue;
-                case AetheriaBlueDefFestering:
-                    return AetheriaColor.Blue;
-                case AetheriaBlueDefRegeneration:
-                    return AetheriaColor.Blue;
-                case AetheriaBlueDesDestruction:
-                    return AetheriaColor.Blue;
-                case AetheriaBlueDesAffliction:
-                    return AetheriaColor.Blue;
-                case AetheriaBlueDesProtection:
-                    return AetheriaColor.Blue;
-                case AetheriaBlueDesFestering:
-                    return AetheriaColor.Blue;
-                case AetheriaBlueDesRegeneration:
-                    return AetheriaColor.Blue;
-                case AetheriaBlueFurDesrtuction:
-                    return AetheriaColor.Blue;
-                case AetheriaBlueFurAffliction:
-                    return AetheriaColor.Blue;
-                case AetheriaBlueFurProtection:
-                    return AetheriaColor.Blue;
-                case AetheriaBlueFurFestering:
-                    return AetheriaColor.Blue;
-                case AetheriaBlueFurRegeneration:
-                    return AetheriaColor.Blue;
-                case AetheriaBlueGroDesrtuction:
-                    return AetheriaColor.Blue;
-                case AetheriaBlueGroAffliction:
-                    return AetheriaColor.Blue;
-                case AetheriaBlueGroProtection:
-                    return AetheriaColor.Blue;
-                case AetheriaBlueGroFestering:
-                    return AetheriaColor.Blue;
-                case AetheriaBlueGroRegeneration:
-                    return AetheriaColor.Blue;
-                case AetheriaBlueVigDesrtuction:
-                    return AetheriaColor.Blue;
-                case AetheriaBlueVigAffliction:
-                    return AetheriaColor.Blue;
-                case AetheriaBlueVigProtection:
-                    return AetheriaColor.Blue;
-                case AetheriaBlueVigFestering:
-                    return AetheriaColor.Blue;
-                case AetheriaBlueVigRegeneration:
-                    return AetheriaColor.Blue;
                 case AetheriaYellow:
                     return AetheriaColor.Yellow;
-                case AetheriaYellowDefDestruction:
-                    return AetheriaColor.Yellow;
-                case AetheriaYellowDefAffliction:
-                    return AetheriaColor.Yellow;
-                case AetheriaYellowDefProtection:
-                    return AetheriaColor.Yellow;
-                case AetheriaYellowDefFestering:
-                    return AetheriaColor.Yellow;
-                case AetheriaYellowDefRegeneration:
-                    return AetheriaColor.Yellow;
-                case AetheriaYellowDesDestruction:
-                    return AetheriaColor.Yellow;
-                case AetheriaYellowDesAffliction:
-                    return AetheriaColor.Yellow;
-                case AetheriaYellowDesProtection:
-                    return AetheriaColor.Yellow;
-                case AetheriaYellowDesFestering:
-                    return AetheriaColor.Yellow;
-                case AetheriaYellowDesRegeneration:
-                    return AetheriaColor.Yellow;
-                case AetheriaYellowFurDesrtuction:
-                    return AetheriaColor.Yellow;
-                case AetheriaYellowFurAffliction:
-                    return AetheriaColor.Yellow;
-                case AetheriaYellowFurProtection:
-                    return AetheriaColor.Yellow;
-                case AetheriaYellowFurFestering:
-                    return AetheriaColor.Yellow;
-                case AetheriaYellowFurRegeneration:
-                    return AetheriaColor.Yellow;
-                case AetheriaYellowGroDesrtuction:
-                    return AetheriaColor.Yellow;
-                case AetheriaYellowGroAffliction:
-                    return AetheriaColor.Yellow;
-                case AetheriaYellowGroProtection:
-                    return AetheriaColor.Yellow;
-                case AetheriaYellowGroFestering:
-                    return AetheriaColor.Yellow;
-                case AetheriaYellowGroRegeneration:
-                    return AetheriaColor.Yellow;
-                case AetheriaYellowVigDesrtuction:
-                    return AetheriaColor.Yellow;
-                case AetheriaYellowVigAffliction:
-                    return AetheriaColor.Yellow;
-                case AetheriaYellowVigProtection:
-                    return AetheriaColor.Yellow;
-                case AetheriaYellowVigFestering:
-                    return AetheriaColor.Yellow;
-                case AetheriaYellowVigRegeneration:
-                    return AetheriaColor.Yellow;
                 case AetheriaRed:
-                    return AetheriaColor.Red;
-                case AetheriaRedDefDestruction:
-                    return AetheriaColor.Red;
-                case AetheriaRedDefAffliction:
-                    return AetheriaColor.Red;
-                case AetheriaRedDefProtection:
-                    return AetheriaColor.Red;
-                case AetheriaRedDefFestering:
-                    return AetheriaColor.Red;
-                case AetheriaRedDefRegeneration:
-                    return AetheriaColor.Red;
-                case AetheriaRedDesDestruction:
-                    return AetheriaColor.Red;
-                case AetheriaRedDesAffliction:
-                    return AetheriaColor.Red;
-                case AetheriaRedDesProtection:
-                    return AetheriaColor.Red;
-                case AetheriaRedDesFestering:
-                    return AetheriaColor.Red;
-                case AetheriaRedDesRegeneration:
-                    return AetheriaColor.Red;
-                case AetheriaRedFurDesrtuction:
-                    return AetheriaColor.Red;
-                case AetheriaRedFurAffliction:
-                    return AetheriaColor.Red;
-                case AetheriaRedFurProtection:
-                    return AetheriaColor.Red;
-                case AetheriaRedFurFestering:
-                    return AetheriaColor.Red;
-                case AetheriaRedFurRegeneration:
-                    return AetheriaColor.Red;
-                case AetheriaRedGroDesrtuction:
-                    return AetheriaColor.Red;
-                case AetheriaRedGroAffliction:
-                    return AetheriaColor.Red;
-                case AetheriaRedGroProtection:
-                    return AetheriaColor.Red;
-                case AetheriaRedGroFestering:
-                    return AetheriaColor.Red;
-                case AetheriaRedGroRegeneration:
-                    return AetheriaColor.Red;
-                case AetheriaRedVigDesrtuction:
-                    return AetheriaColor.Red;
-                case AetheriaRedVigAffliction:
-                    return AetheriaColor.Red;
-                case AetheriaRedVigProtection:
-                    return AetheriaColor.Red;
-                case AetheriaRedVigFestering:
-                    return AetheriaColor.Red;
-                case AetheriaRedVigRegeneration:
                     return AetheriaColor.Red;
                 case 1910505:
                     return AetheriaColor.Blue;
@@ -462,7 +238,11 @@ namespace ACE.Server.Entity
             player.UpdateProperty(target, PropertyString.LongDesc, "This aetheria's sigil now shows on the surface.");
             player.Session.Network.EnqueueSend(new GameMessageUpdateObject(target));
 
+            target.SaveBiotaToDatabase();
+
             player.SendUseDoneEvent();
+
+            log.Debug($"[CRAFTING] {player.Name} revealed a {color} {randSigil} with a surge of {surgeSpell} on {target.Name}:0x{target.Guid}");
         }
 
         public static Dictionary<Sigil, EquipmentSet> SigilToEquipmentSet = new Dictionary<Sigil, EquipmentSet>()
@@ -512,9 +292,6 @@ namespace ACE.Server.Entity
                 case CombatMode.Missile:
                     procRate *= 1.5f;
                     break;
-                case CombatMode.Melee:
-                    procRate *= 1.2f;
-                    break;
             }
             // It is unconfirmed, but believed, that the act of being hit or attacked increases the chances of a surge triggering.
             return procRate;
@@ -527,5 +304,7 @@ namespace ACE.Server.Entity
         {
             return wo.WeenieClassId == AetheriaManaStone;
         }
+
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
     }
 }

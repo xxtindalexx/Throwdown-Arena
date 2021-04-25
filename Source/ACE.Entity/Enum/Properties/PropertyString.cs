@@ -97,47 +97,50 @@ namespace ACE.Entity.Enum.Properties
         [ServerOnly]
         TinkerLog                       = 9007,
         [ServerOnly]
-        PlayersKilled                   = 9008,
+        PlayersKilled = 9008,
         [ServerOnly]
-        PlayersKilled1                  = 9009,
+        PlayersKilled1 = 9009,
         [ServerOnly]
-        PlayersKilled2                  = 9010,
+        PlayersKilled2 = 9010,
         [ServerOnly]
-        PlayersKilled3                  = 9011,
+        PlayersKilled3 = 9011,
         [ServerOnly]
-        PlayersKilled4                  = 9012,
+        PlayersKilled4 = 9012,
         [ServerOnly]
-        PlayersKilled5                  = 9013,
+        PlayersKilled5 = 9013,
         [ServerOnly]
-        PlayersKilled6                  = 9014,
+        PlayersKilled6 = 9014,
         [ServerOnly]
-        PlayersKilled7                  = 9015,
+        PlayersKilled7 = 9015,
         [ServerOnly]
-        PlayersKilled8                  = 9016,
+        PlayersKilled8 = 9016,
         [ServerOnly]
-        PlayersKilled9                  = 9017,
+        PlayersKilled9 = 9017,
         [ServerOnly]
-        PlayersKilled10                 = 9018,
+        PlayersKilled10 = 9018,
         [ServerOnly]
-        PlayersKilledIP1                = 9019,
+        PlayersKilledIP1 = 9019,
         [ServerOnly]
-        PlayersKilledIP2                = 9020,
+        PlayersKilledIP2 = 9020,
         [ServerOnly]
-        PlayersKilledIP3                = 9021,
+        PlayersKilledIP3 = 9021,
         [ServerOnly]
-        PlayersKilledIP4                = 9022,
+        PlayersKilledIP4 = 9022,
         [ServerOnly]
-        PlayersKilledIP5                = 9023,
+        PlayersKilledIP5 = 9023,
         [ServerOnly]
-        PlayersKilledIP6                = 9024,
+        PlayersKilledIP6 = 9024,
         [ServerOnly]
-        PlayersKilledIP7                = 9025,
+        PlayersKilledIP7 = 9025,
         [ServerOnly]
-        PlayersKilledIP8                = 9026,
+        PlayersKilledIP8 = 9026,
         [ServerOnly]
-        PlayersKilledIP9                = 9027,
+        PlayersKilledIP9 = 9027,
         [ServerOnly]
-        PlayersKilledIP10               = 9028,
+        PlayersKilledIP10 = 9028,
+
+        [ServerOnly]
+        CurrentRareEnchantmentIds       = 52029
     }
 
     public static class PropertyStringExtensions

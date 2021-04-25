@@ -784,7 +784,7 @@ namespace ACE.Server.Command.Handlers
             var player = PlayerManager.GetOnlinePlayer(playerName);
             // If the player is found, teleport the admin to the Player's location
             if (player != null)
-                session.Player.Teleport(player.Location);
+                session.Player.Teleport(player.Location, TeleportType.Admin);
             else
                 session.Network.EnqueueSend(new GameMessageSystemChat($"Player {playerName} was not found.", ChatMessageType.Broadcast));
         }
@@ -803,7 +803,7 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
             var currentPos = new Position(player.Location);
-            player.Teleport(session.Player.Location);
+            player.Teleport(session.Player.Location, TeleportType.Admin);
             player.SetPosition(PositionType.TeleportedCharacter, currentPos);
             player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{session.Player.Name} has teleported you.", ChatMessageType.Magic));
 
@@ -830,7 +830,7 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            player.Teleport(new Position(player.TeleportedCharacter));
+            player.Teleport(new Position(player.TeleportedCharacter), TeleportType.Admin);
             player.SetPosition(PositionType.TeleportedCharacter, null);
             player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{session.Player.Name} has returned you to your previous location.", ChatMessageType.Magic));
 
@@ -841,6 +841,8 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("teleallto", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Teleports all players to a player. If no target is specified, all players will be teleported to you.", "[Player's Name]\n")]
         public static void HandleTeleAllTo(Session session, params string[] parameters)
         {
+            return; //Disabled
+
             Player destinationPlayer = null;
 
             if (parameters.Length > 0)
@@ -856,7 +858,7 @@ namespace ACE.Server.Command.Handlers
 
                 player.SetPosition(PositionType.TeleportedCharacter, new Position(player.Location));
 
-                player.Teleport(new Position(destinationPlayer.Location));
+                player.Teleport(new Position(destinationPlayer.Location), TeleportType.Admin);
             }
 
             PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has teleported all online players to their location.");
@@ -936,7 +938,7 @@ namespace ACE.Server.Command.Handlers
                     positionData[i] = position;
                 }
 
-                session.Player.Teleport(new Position(cell, positionData[0], positionData[1], positionData[2], positionData[4], positionData[5], positionData[6], positionData[3]));
+                session.Player.Teleport(new Position(cell, positionData[0], positionData[1], positionData[2], positionData[4], positionData[5], positionData[6], positionData[3]), TeleportType.Admin);
             }
             catch (Exception)
             {
@@ -1663,14 +1665,20 @@ namespace ACE.Server.Command.Handlers
             switch (eventCmd)
             {
                 case "start":
-                    if (EventManager.StartEvent(eventName))
+                    if (EventManager.StartEvent(eventName, session.Player, null))
+                    {
                         session.Network.EnqueueSend(new GameMessageSystemChat($"Event {eventName} started successfully.", ChatMessageType.Broadcast));
+                        PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has started event {eventName}.");
+                    }
                     else
                         session.Network.EnqueueSend(new GameMessageSystemChat($"Unable to start event named {eventName} .", ChatMessageType.Broadcast));
                     break;
                 case "stop":
-                    if (EventManager.StopEvent(eventName))
+                    if (EventManager.StopEvent(eventName, session.Player, null))
+                    {
                         session.Network.EnqueueSend(new GameMessageSystemChat($"Event {eventName} stopped successfully.", ChatMessageType.Broadcast));
+                        PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has stopped event {eventName}.");
+                    }
                     else
                         session.Network.EnqueueSend(new GameMessageSystemChat($"Unable to stop event named {eventName} .", ChatMessageType.Broadcast));
                     break;
@@ -2378,23 +2386,32 @@ namespace ACE.Server.Command.Handlers
                 {
                     var questsHdr = $"Quest Registry for {creature.Name} (0x{creature.Guid}):\n";
                     questsHdr += "================================================\n";
-                    var quests = "";
-                    foreach (var quest in creature.QuestManager.GetQuests())
+                    session.Player.SendMessage(questsHdr);
+
+                    var quests = creature.QuestManager.GetQuests();
+
+                    if (quests.Count == 0)
                     {
-                        quests += $"Quest Name: {quest.QuestName}\nCompletions: {quest.NumTimesCompleted} | Last Completion: {quest.LastTimeCompleted} ({Common.Time.GetDateTimeFromTimestamp(quest.LastTimeCompleted).ToLocalTime()})\n";
+                        session.Player.SendMessage("No quests found.");
+                        return;
+                    }
+
+                    foreach (var quest in quests)
+                    {
+                        var questEntry = "";
+                        questEntry += $"Quest Name: {quest.QuestName}\nCompletions: {quest.NumTimesCompleted} | Last Completion: {quest.LastTimeCompleted} ({Common.Time.GetDateTimeFromTimestamp(quest.LastTimeCompleted).ToLocalTime()})\n";
                         var nextSolve = creature.QuestManager.GetNextSolveTime(quest.QuestName);
 
                         if (nextSolve == TimeSpan.MinValue)
-                            quests += "Can Solve: Immediately\n";
+                            questEntry += "Can Solve: Immediately\n";
                         else if (nextSolve == TimeSpan.MaxValue)
-                            quests += "Can Solve: Never again\n";
+                            questEntry += "Can Solve: Never again\n";
                         else
-                            quests += $"Can Solve: In {nextSolve:%d} days, {nextSolve:%h} hours, {nextSolve:%m} minutes and, {nextSolve:%s} seconds. ({(DateTime.UtcNow + nextSolve).ToLocalTime()})\n";
+                            questEntry += $"Can Solve: In {nextSolve:%d} days, {nextSolve:%h} hours, {nextSolve:%m} minutes and, {nextSolve:%s} seconds. ({(DateTime.UtcNow + nextSolve).ToLocalTime()})\n";
 
-                        quests += "--====--\n";
+                        questEntry += "--====--\n";
+                        session.Player.SendMessage(questEntry);
                     }
-
-                    session.Player.SendMessage($"{questsHdr}{(quests != "" ? quests : "No quests found.")}");
                     return;
                 }
 
@@ -3075,50 +3092,7 @@ namespace ACE.Server.Command.Handlers
             HandleCISalvage(session, parameters);
         }
 
-        // cidye <color>
-        [CommandHandler("cidye", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 1, "Type /cidye followed by the color (example /cidye Red)", "<color>")]
-        public static void HandleCIDye(Session session, params string[] parameters)
-        {
-            if (parameters.Length > 0)
-
-                {
-                var color = parameters[0].ToLower();
-                var colorId = 8044;
-                switch (color) {
-                    case "red":
-                        colorId = 8044;
-                        break;
-                    case "black":
-                        colorId = 11475;
-                        break;
-                    case "darkgreen":
-                        colorId = 8043;
-                        break;
-                    case "darkblue":
-                        colorId = 11476;
-                        break;
-                    case "lightgreen":
-                        colorId = 8651;
-                        break;
-                    case "lightblue":
-                        colorId = 8650;
-                        break;
-                    case "yellow":
-                        colorId = 8045;
-                        break;
-                    case "purple":
-                        colorId = 11477;
-                        break;
-                    case "white":
-                        colorId = 8652;
-                        break;
-                }
-                var DyePot = WorldObjectFactory.CreateNewWorldObject((uint)colorId);
-                session.Player.TryCreateInInventoryWithNetworking(DyePot);
-            }
-        }
-
-        [CommandHandler("cisalvage", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 1, "Create a salvage bag in your inventory", "<material_type>, optional: <structure> <workmanship> <num_items>")]
+        [CommandHandler("cisalvage", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Create a salvage bag in your inventory", "<material_type>, optional: <structure> <workmanship> <num_items>")]
         public static void HandleCISalvage(Session session, params string[] parameters)
         {
             if (!Enum.TryParse(parameters[0], true, out MaterialType materialType))
@@ -3152,7 +3126,7 @@ namespace ACE.Server.Command.Handlers
             session.Player.TryCreateInInventoryWithNetworking(salvageBag);
         }
 
-            [CommandHandler("setlbenviron", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
+        [CommandHandler("setlbenviron", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
             "Sets or clears your current landblock's environment option",
             "(name or id of EnvironChangeType)\nleave blank to reset to default.\nlist to get a complete list of options.")]
         public static void HandleSetLBEnviron(Session session, params string[] parameters)

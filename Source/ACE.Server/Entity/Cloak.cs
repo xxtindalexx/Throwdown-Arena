@@ -28,6 +28,11 @@ namespace ACE.Server.Entity
             return HandleProcSpell(defender, attacker, cloak);
         }
 
+        private static readonly float MaxProcBase = 0.25f;
+        private static readonly float MaxProcBase200 = 0.15f;
+
+        private static readonly float TwoThirds = 2.0f / 3.0f;
+
         /// <summary>
         /// Rolls for a chance at procing a cloak spell
         /// </summary>
@@ -46,7 +51,17 @@ namespace ACE.Server.Entity
 
             if (itemLevel < 1) return false;
 
-            var maxProcRate = 0.25f + (itemLevel - 1) * 0.0125f;
+            var maxProcBase = MaxProcBase;
+
+            if (HasDamageProc(cloak))
+            {
+                maxProcBase = MaxProcBase200;
+                damage_percent *= TwoThirds;
+            }
+
+            var maxProcRate = maxProcBase + (itemLevel - 1) * 0.0125f;
+            maxProcRate = Math.Min(maxProcRate, (float)Managers.PropertyManager.GetDouble("cloak_max_proc_rate", 0.25f).Item);
+            maxProcRate = Math.Clamp(maxProcRate, 0f, 1f);
 
             var chance = Math.Min(damage_percent, maxProcRate);
 
@@ -96,7 +111,7 @@ namespace ACE.Server.Entity
 
             var msg = new GameMessageSystemChat($"The cloak of {defender.Name} weaves the magic of {spell.Name}!", ChatMessageType.Spellcasting);
 
-            defender.EnqueueBroadcast(msg, WorldObject.LocalBroadcastRange, ChatMessageType.Magic);
+            defender.EnqueueBroadcast(msg, WorldObject.LocalBroadcastRange, ChatMessageType.Spellcasting);
 
             defender.TryCastSpell(spell, target, cloak, false, false);
 

@@ -1,14 +1,34 @@
 using System;
 using System.Text;
 using ACE.Entity.Enum;
+using ACE.Server.WorldObjects;
+using log4net;
 
 namespace ACE.Server.Network.GameMessages.Messages
 {
     public class GameMessageTurbineChat : GameMessage
     {
-        public GameMessageTurbineChat(ChatNetworkBlobType chatNetworkBlobType, uint channel, string senderName, string message, uint senderID, ChatType chatType)
+        private static readonly ILog publicChatLog = LogManager.GetLogger(System.Reflection.Assembly.GetEntryAssembly(), "PublicChat");
+
+        public uint Channel { get; set; }
+        public string SenderName { get; set; }
+        public string Message { get; set; }
+        public uint SenderID { get; set; }
+        public ChatType ChatType { get; set; }
+
+        public GameMessageTurbineChat(ChatNetworkBlobType chatNetworkBlobType, ChatNetworkBlobDispatchType chatNetworkBlobDispatchType, uint channel, Player sender, string message, uint senderID, ChatType chatType)
             : base(GameMessageOpcode.TurbineChat, GameMessageGroup.LoginQueue)
         {
+            this.Channel = channel;
+            this.SenderName = sender?.Name;
+            this.Message = message;
+            this.SenderID = senderID;
+            this.ChatType = chatType;
+            var senderName = this.SenderName;
+
+            if (sender != null && message != null)
+                publicChatLog.Info($"{{{{CLID:{sender.ClientID}}}}}{{{{CHID:{channel}}}}}[{chatType}] {{{{CHAR:{sender.Name}}}}}: {message}");
+
             /*uint messageSize;       // the number of bytes that follow after this DWORD
             ChatNetworkBlobType type;   // the type of data contained in this message
             uint blobDispatchType;  // 1?
@@ -81,7 +101,7 @@ namespace ACE.Server.Network.GameMessages.Messages
                 var firstSizePos = Writer.BaseStream.Position;
                 Writer.Write(0u); // Bytes to follow
                 Writer.Write((uint)chatNetworkBlobType);
-                Writer.Write(1u);
+                Writer.Write((uint)chatNetworkBlobDispatchType);
                 Writer.Write(1u);
                 Writer.Write(0x000B00B5); // Unique ID? Both ID's always match. These numbers change between 0x000B0000 - 0x000B00FF I think.
                 Writer.Write(1u);
@@ -117,7 +137,7 @@ namespace ACE.Server.Network.GameMessages.Messages
                 var firstSizePos = Writer.BaseStream.Position;
                 Writer.Write(0u); // Bytes to follow
                 Writer.Write((uint)chatNetworkBlobType);
-                Writer.Write(1u);
+                Writer.Write((uint)chatNetworkBlobDispatchType);
                 Writer.Write(1u);
                 Writer.Write(0x000B00B5); // Unique ID? Both ID's always match. These numbers change between 0x000B0000 - 0x000B00FF I think.
                 Writer.Write(1u);

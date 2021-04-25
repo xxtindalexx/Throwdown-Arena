@@ -6,7 +6,6 @@ using ACE.Common;
 using ACE.DatLoader;
 using ACE.Entity;
 using ACE.Entity.Enum;
-using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
@@ -211,7 +210,31 @@ namespace ACE.Server.WorldObjects
             {
                 // restart turn if required
                 if (PhysicsObj.MovementManager.MotionInterpreter.InterpretedState.TurnCommand == 0)
-                    TurnTo_Magic(target);
+                {
+                    var windUpRetryLimit = PropertyManager.GetLong("windup_turn_retry_number").Item;
+                    // Console.WriteLine($"windUpRetryLimit: {windUpRetryLimit}");
+                    if (windUpRetryLimit > 0)
+                    {
+                        if (windupParams.TurnTries < windUpRetryLimit)
+                        {
+                            windupParams.TurnTries += 1;
+                            // Console.WriteLine($"{Name} turn to in DoWindup try #{windupParams.TurnTries}/{windUpRetryLimit}");
+                            TurnTo_Magic(target);
+                        }
+                        else
+                        {
+                            // give up after trying to correct angle a few times..
+                            // Console.WriteLine($"{Name} turn to in DoWindup giving up..");
+                            MagicState.OnCastDone();
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        // If windup_turn_retry_number property is 0 try forever like before.
+                        TurnTo_Magic(target);
+                    }
+                }
                 else
                     MagicState.PendingTurnRelease = true;
             }
@@ -530,12 +553,6 @@ namespace ACE.Server.WorldObjects
             if (isWeaponSpell)
                 castingPreCheckStatus = CastingPreCheckStatus.Success;
 
-            HashSet<SpellCategory> StreakSpells = new HashSet<SpellCategory>
-                {
-                   (SpellCategory)243, (SpellCategory)244, (SpellCategory)245, (SpellCategory)246, (SpellCategory)247, (SpellCategory)248, (SpellCategory)249
-                };
-            
-
             // limit casting time between war and void
             if (spell.School == MagicSchool.VoidMagic && LastSuccessCast_School == MagicSchool.WarMagic ||
                 spell.School == MagicSchool.WarMagic && LastSuccessCast_School == MagicSchool.VoidMagic)
@@ -806,6 +823,10 @@ namespace ACE.Server.WorldObjects
                     return;
                 }
 
+                // verify cast radius before every automatic TurnTo after windup
+                if (!VerifyCastRadius())
+                    return;
+
                 var stopCompletely = !MagicState.CastMotionDone;
                 //var stopCompletely = true;
 
@@ -849,14 +870,15 @@ namespace ACE.Server.WorldObjects
                 TryBurnComponents(spell);
 
             // check windup move distance cap
-            var endPos = new Physics.Common.Position(PhysicsObj.Position);
-            var dist = StartPos.Distance(endPos);
+            var dist = StartPos.Distance(PhysicsObj.Position);
 
             // only PKs affected by these caps?
             if (dist > Windup_MaxMove && PlayerKillerStatus != PlayerKillerStatus.NPK)
             {
                 //player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouHaveMovedTooFar));
                 Session.Network.EnqueueSend(new GameMessageSystemChat("Your movement disrupted spell casting!", ChatMessageType.Magic));
+
+                EnqueueBroadcast(new GameMessageScript(Guid, PlayScript.Fizzle, 0.5f));
 
                 if (finishCast)
                     FinishCast();
@@ -920,17 +942,6 @@ namespace ACE.Server.WorldObjects
                 if (target is Player targetPlayer)
                     targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(targetPlayer.Session, pk_error[1], Name));
             }
-
-            HashSet<SpellCategory> StreakSpells = new HashSet<SpellCategory>
-                {
-                   (SpellCategory)243, (SpellCategory)244, (SpellCategory)245, (SpellCategory)246, (SpellCategory)247, (SpellCategory)248, (SpellCategory)249
-                };
-
-            if (StreakSpells.Contains(spell.Category) && !StreakTimer.HasValue)
-                SetProperty(PropertyFloat.StreakTimer, Time.GetFutureUnixTime(2.3f));
-
-            if (Time.GetUnixTime() > StreakTimer)
-                RemoveProperty(PropertyFloat.StreakTimer);
 
             if (finishCast)
                 FinishCast();
@@ -1243,7 +1254,8 @@ namespace ACE.Server.WorldObjects
 
         public void TryBurnComponents(Spell spell)
         {
-            if (SafeSpellComponents) return;
+            if (SafeSpellComponents || PropertyManager.GetBool("safe_spell_comps").Item)
+                return;
 
             var burned = spell.TryBurnComponents(this);
             if (burned.Count == 0) return;
@@ -1481,8 +1493,27 @@ namespace ACE.Server.WorldObjects
                 DoCastSpell(MagicState, true);
         }
 
+        public bool VerifyCastRadius()
+        {
+            if (MagicState.CastGestureStartTime != DateTime.MinValue)
+            {
+                var dist = StartPos.Distance(PhysicsObj.Position);
+
+                if (dist > Windup_MaxMove && PlayerKillerStatus != PlayerKillerStatus.NPK)
+                {
+                    FailCast();
+                    return false;
+                }
+            }
+            return true;
+        }
+
         public void CheckTurn()
         {
+            // verify cast radius while manually moving after windup
+            if (!VerifyCastRadius())
+                return;
+
             if (TurnTarget != null && IsWithinAngle(TurnTarget))
             {
                 if (MagicState.PendingTurnRelease)

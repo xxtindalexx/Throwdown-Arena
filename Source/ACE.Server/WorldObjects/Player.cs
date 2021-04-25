@@ -28,6 +28,7 @@ using ACE.Server.WorldObjects.Managers;
 
 using Character = ACE.Database.Models.Shard.Character;
 using MotionTable = ACE.DatLoader.FileTypes.MotionTable;
+using System.Linq;
 
 namespace ACE.Server.WorldObjects
 {
@@ -110,7 +111,7 @@ namespace ACE.Server.WorldObjects
 
             Account = DatabaseManager.Authentication.GetAccountById(Character.AccountId);
 
-            SetEphemeralValues();
+            SetEphemeralValues();   
 
             SortBiotasIntoInventory(inventory);
             AddBiotasToEquippedObjects(wieldedItems);
@@ -479,35 +480,31 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool LogOut(bool clientSessionTerminatedAbruptly = false, bool forceImmediate = false)
         {
-            if (!forceImmediate && Session.Player.Level >= PropertyManager.GetLong("pk_logout_timer_min_level").Item) // committed adding comment to log entry.
+            if (PKLogoutActive && !forceImmediate)
             {
-                var deflog = 20;
-
-                if (Session.Player.Enlightenment >= 1 && Session.Player.Enlightenment <= 2)
-                {
-                    deflog = 15;
-                    Session.Network.EnqueueSend(new GameMessageSystemChat("Logging out in 15s(-5s Enlightenment)...", ChatMessageType.Magic));
-                }
-                else if (Session.Player.Enlightenment >= 3 && Session.Player.Enlightenment <= 5)
-                {
-                    deflog = 10;
-                    Session.Network.EnqueueSend(new GameMessageSystemChat("Logging out in 10s(-10s Enlightenment)...", ChatMessageType.Magic));
-                }
-                else if (Session.Player.Enlightenment >= 6)
-                {
-                    deflog = 5;
-                    Session.Network.EnqueueSend(new GameMessageSystemChat("Logging out in 5s(-15s Enlightenment)...", ChatMessageType.Magic));
-                }
-                else
-                {
-                    Session.Network.EnqueueSend(new GameMessageSystemChat("Logging out in 20s...", ChatMessageType.Magic));
-                }
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
+                Session.Network.EnqueueSend(new GameMessageSystemChat("Logging out in 20s...", ChatMessageType.Magic));
 
                 if (!PKLogout)
                 {
                     PKLogout = true;
 
-                    LogoffTimestamp = Time.GetFutureUnixTime(deflog);
+                    LogoffTimestamp = Time.GetFutureUnixTime(PropertyManager.GetLong("pk_timer").Item);
+                    PlayerManager.AddPlayerToLogoffQueue(this);
+                }
+                return false;
+            }
+            else if (!forceImmediate)
+            {
+                var logoffTimer = PropertyManager.GetDouble("logoff_timer", 0.0).Item;
+                logoffTimer = Math.Round(logoffTimer, 1);
+                Session.Network.EnqueueSend(new GameMessageSystemChat("Logging out in 5s...", ChatMessageType.Magic));
+
+                if (!PKLogout)
+                {
+                    PKLogout = true;
+
+                    LogoffTimestamp = Time.GetFutureUnixTime(logoffTimer);
                     PlayerManager.AddPlayerToLogoffQueue(this);
                 }
                 return false;
@@ -1101,7 +1098,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (TooBusyToRecall)
+            if (IsBusy || Teleporting || suicideInProgress)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YoureTooBusy));
                 return;

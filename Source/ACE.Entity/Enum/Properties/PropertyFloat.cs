@@ -87,7 +87,6 @@ namespace ACE.Entity.Enum.Properties
         ResistStaminaBoost             = 73,
         ResistManaDrain                = 74,
         ResistManaBoost                = 75,
-        [Ephemeral]
         Translucency                   = 76,
         PhysicsScriptIntensity         = 77,
         Friction                       = 78,
@@ -217,12 +216,8 @@ namespace ACE.Entity.Enum.Properties
         PCAPRecordeOmegaY              = 8017,
         [ServerOnly]
         PCAPRecordeOmegaZ              = 8018,
-        [ServerOnly]
-        TrophyTime                     = 9001,
-        [ServerOnly]
-        TrophyTimer                    = 9002,
-        [ServerOnly]
-        StreakTimer                    = 9006,
+
+
 
         /***** FOREDAWN CUSTOMS *****/
         ForedawnPvpDamageMulti         = 52000

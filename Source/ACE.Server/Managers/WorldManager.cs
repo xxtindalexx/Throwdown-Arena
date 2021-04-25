@@ -170,6 +170,7 @@ namespace ACE.Server.Managers
                 player.IgnoreHouseBarriers = false;
                 player.IgnorePortalRestrictions = false;
                 player.SafeSpellComponents = false;
+                player.ReportCollisions = true;
 
 
                 player.ChangesDetected = true;
@@ -255,7 +256,7 @@ namespace ACE.Server.Managers
                 session.Network.EnqueueSend(new GameEventPopupString(session, AppendLines(popup_header, popup_motd)));
             }
 
-            var info = "";
+            var info = "Welcome to Asheron's Call\n  powered by ACEmulator\n\nFor more information on commands supported by this server, type @acehelp\n";
             session.Network.EnqueueSend(new GameMessageSystemChat(info, ChatMessageType.Broadcast));
 
             var server_motd = PropertyManager.GetString("server_motd").Item;
@@ -265,7 +266,7 @@ namespace ACE.Server.Managers
             if (playerLoggedInOnNoLogLandblock) // see http://acpedia.org/wiki/Mount_Elyrii_Hive
                 session.Network.EnqueueSend(new GameMessageSystemChat("The currents of portal space cannot return you from whence you came. Your previous location forbids login.", ChatMessageType.Broadcast));
         }
-        
+
         private static string AppendLines(params string[] lines)
         {
             var result = "";
@@ -283,11 +284,11 @@ namespace ACE.Server.Managers
         /// Note that this work will be done on the next tick, not immediately, so be careful about your order of operations.
         /// If you must ensure order, pass your follow up work in with the argument actionToFollowUpWith. That work will be enqueued onto the Player.
         /// </summary>
-        public static void ThreadSafeTeleport(Player player, Position newPosition, IAction actionToFollowUpWith = null)
+        public static void ThreadSafeTeleport(Player player, Position newPosition, IAction actionToFollowUpWith = null, TeleportType teleportType = TeleportType.Unknown)
         {
             EnqueueAction(new ActionEventDelegate(() =>
             {
-                player.Teleport(newPosition);
+                player.Teleport(newPosition, teleportType);
 
                 if (actionToFollowUpWith != null)
                     EnqueueAction(actionToFollowUpWith);

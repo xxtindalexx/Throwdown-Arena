@@ -91,9 +91,12 @@ namespace ACE.Server.Network.Structure
             // Help us make sure the item identify properly
             NPCLooksLikeObject = wo.GetProperty(PropertyBool.NpcLooksLikeObject) ?? false;
 
-            if (PropertiesIID.ContainsKey(PropertyInstanceId.AllowedWielder))
-                if (!PropertiesBool.ContainsKey(PropertyBool.AppraisalHasAllowedWielder))
-                    PropertiesBool.Add(PropertyBool.AppraisalHasAllowedWielder, true);
+            if (!(PropertiesBool.ContainsKey(PropertyBool.ForedawnAmethystApplied) && PropertiesBool[PropertyBool.ForedawnAmethystApplied] == true))
+            {
+                if (PropertiesIID.ContainsKey(PropertyInstanceId.AllowedWielder))
+                    if (!PropertiesBool.ContainsKey(PropertyBool.AppraisalHasAllowedWielder))
+                        PropertiesBool.Add(PropertyBool.AppraisalHasAllowedWielder, true);
+            }
 
             if (PropertiesIID.ContainsKey(PropertyInstanceId.AllowedActivator))
                 if (!PropertiesBool.ContainsKey(PropertyBool.AppraisalHasAllowedActivator))
@@ -473,8 +476,12 @@ namespace ACE.Server.Network.Structure
                 // Only show Clothing type item enchantments
                 foreach (var enchantment in woEnchantments)
                 {
-                    if ((enchantment.SpellCategory >= SpellCategory.ArmorValueRaising) && (enchantment.SpellCategory <= SpellCategory.AcidicResistanceLowering))
+                    // TODO this still needs to be fixed for rare banes
+                    if ((enchantment.SpellCategory >= SpellCategory.ArmorValueRaising && enchantment.SpellCategory <= SpellCategory.AcidicResistanceLowering) ||
+                        (enchantment.SpellCategory >= SpellCategory.ExtraAcidResistanceRaising && enchantment.SpellCategory <= SpellCategory.ExtraElectricResistanceLowering))
+                    {
                         activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
+                    }
                 }
             }
             else

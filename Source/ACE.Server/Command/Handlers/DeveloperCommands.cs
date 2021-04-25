@@ -897,7 +897,7 @@ namespace ACE.Server.Command.Handlers
             }
         }
 
-        [CommandHandler("spendallxp", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 0, "Spend all available XP on Attributes, Vitals and Skills.")]
+        [CommandHandler("spendallxp", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Spend all available XP on Attributes, Vitals and Skills.")]
         public static void HandleSpendAllXp(Session session, params string[] parameters)
         {
             session.Player.SpendAllXp();
@@ -1579,7 +1579,7 @@ namespace ACE.Server.Command.Handlers
 
             newPos.SetPosition(newPos.Pos + offset);
 
-            session.Player.Teleport(newPos);
+            session.Player.Teleport(newPos, TeleportType.Admin);
 
             var globLastSpawnPos = lastSpawnPos.ToGlobal();
             var globNewPos = newPos.ToGlobal();
@@ -2105,7 +2105,7 @@ namespace ACE.Server.Command.Handlers
                 var pos = new Position(dest.ObjCellId, dest.OriginX, dest.OriginY, dest.OriginZ, dest.AnglesX, dest.AnglesY, dest.AnglesZ, dest.AnglesW);
                 WorldObject.AdjustDungeon(pos);
 
-                session.Player.Teleport(pos);
+                session.Player.Teleport(pos, TeleportType.Admin);
             }
         }
 
@@ -2139,7 +2139,7 @@ namespace ACE.Server.Command.Handlers
                 var pos = new Position(dest.ObjCellId, dest.OriginX, dest.OriginY, dest.OriginZ, dest.AnglesX, dest.AnglesY, dest.AnglesZ, dest.AnglesW);
                 WorldObject.AdjustDungeon(pos);
 
-                session.Player.Teleport(pos);
+                session.Player.Teleport(pos, TeleportType.Admin);
             }
         }
 
@@ -2368,6 +2368,39 @@ namespace ACE.Server.Command.Handlers
             }
         }
 
+        // May actually kill the player or break the macro, don't do this unless confirming whether a player is breaking code of conduct
+        [CommandHandler("detectmeta", AccessLevel.Admin, CommandHandlerFlag.RequiresWorld, "")]
+        public static void HandleDetectMeta(Session session, params string[] parameters)
+        {
+            var playerName = "";
+            if (parameters.Length > 0)
+                playerName = string.Join(" ", parameters);
+
+            if (!string.IsNullOrEmpty(playerName))
+            {
+                var plr = PlayerManager.FindByName(playerName);
+                if (plr != null)
+                {
+                    var target = PlayerManager.GetOnlinePlayer(plr.Guid);
+
+                    if (target == null)
+                    {
+                        CommandHandlerHelper.WriteOutputInfo(session, $"Unable to process {plr.Name}: Player is not online.");
+                        return;
+                    }
+
+                    var msgNumDeaths = new GameMessagePrivateUpdatePropertyInt(target, PropertyInt.NumDeaths, target.NumDeaths);
+                    target.Session.Network.EnqueueSend(msgNumDeaths);
+                    CommandHandlerHelper.WriteOutputInfo(session, $"Death packet sent to client {plr.Name}. A meta will likely portal recall away. If a macro stops completely, then StopMacroOnDeath was not disabled for the person.");
+                }
+                else
+                {
+                    CommandHandlerHelper.WriteOutputInfo(session, $"Unable to process {playerName}: Player not found in manager.");
+                    return;
+                }
+            }
+        }
+
         [CommandHandler("forcelogoff", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Force log off of specified character or last appraised character")]
         public static void HandleForceLogoff(Session session, params string[] parameters)
         {
@@ -2402,10 +2435,18 @@ namespace ACE.Server.Command.Handlers
             if (target != null && target is Player player)
             {
                 if (player.Session != null)
+                {
+                    CommandHandlerHelper.WriteOutputInfo(session, $"Debug: Session exists");
+                    CommandHandlerHelper.WriteOutputInfo(session, $"Debug: logOffRequestTime is {player.Session.logOffRequestTime.ToLongTimeString()}");
                     player.Session.LogOffPlayer(true);
+                }
                 else
+                {
+                    CommandHandlerHelper.WriteOutputInfo(session, $"Debug: Session not found for player");
                     player.LogOut();
+                }
 
+                CommandHandlerHelper.WriteOutputInfo(session, $"Debug: Player LogoffTimestamp: {player.LogoffTimestamp}");
                 PlayerManager.BroadcastToAuditChannel(session?.Player, $"Forcing Log Off of {player.Name}...");
             }
             else
