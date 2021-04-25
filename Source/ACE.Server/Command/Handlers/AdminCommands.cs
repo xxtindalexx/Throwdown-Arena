@@ -3092,7 +3092,51 @@ namespace ACE.Server.Command.Handlers
             HandleCISalvage(session, parameters);
         }
 
-        [CommandHandler("cisalvage", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Create a salvage bag in your inventory", "<material_type>, optional: <structure> <workmanship> <num_items>")]
+        // cidye <color>
+        [CommandHandler("cidye", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 1, "Type /cidye followed by the color (example /cidye Red)", "<color>")]
+        public static void HandleCIDye(Session session, params string[] parameters)
+        {
+            if (parameters.Length > 0)
+
+            {
+                var color = parameters[0].ToLower();
+                var colorId = 8044;
+                switch (color)
+                {
+                    case "red":
+                        colorId = 8044;
+                        break;
+                    case "black":
+                        colorId = 11475;
+                        break;
+                    case "darkgreen":
+                        colorId = 8043;
+                        break;
+                    case "darkblue":
+                        colorId = 11476;
+                        break;
+                    case "lightgreen":
+                        colorId = 8651;
+                        break;
+                    case "lightblue":
+                        colorId = 8650;
+                        break;
+                    case "yellow":
+                        colorId = 8045;
+                        break;
+                    case "purple":
+                        colorId = 11477;
+                        break;
+                    case "white":
+                        colorId = 8652;
+                        break;
+                }
+                var DyePot = WorldObjectFactory.CreateNewWorldObject((uint)colorId);
+                session.Player.TryCreateInInventoryWithNetworking(DyePot);
+            }
+        }
+
+        [CommandHandler("cisalvage", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 1, "Create a salvage bag in your inventory", "<material_type>, optional: <structure> <workmanship> <num_items>")]
         public static void HandleCISalvage(Session session, params string[] parameters)
         {
             if (!Enum.TryParse(parameters[0], true, out MaterialType materialType))
@@ -3125,6 +3169,7 @@ namespace ACE.Server.Command.Handlers
 
             session.Player.TryCreateInInventoryWithNetworking(salvageBag);
         }
+
 
         [CommandHandler("setlbenviron", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
             "Sets or clears your current landblock's environment option",
