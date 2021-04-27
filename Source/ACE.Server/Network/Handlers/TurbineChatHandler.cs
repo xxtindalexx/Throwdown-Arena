@@ -24,7 +24,7 @@ namespace ACE.Server.Network.Handlers
 
             clientMessage.Payload.ReadUInt32(); // Bytes to follow
             var chatBlobType = (ChatNetworkBlobType)clientMessage.Payload.ReadUInt32();
-            var chatBlobDispatchType = (ChatNetworkBlobDispatchType)clientMessage.Payload.ReadUInt32();
+            clientMessage.Payload.ReadUInt32(); // Always 2
             clientMessage.Payload.ReadUInt32(); // Always 1
             clientMessage.Payload.ReadUInt32(); // Always 0
             clientMessage.Payload.ReadUInt32(); // Always 0
@@ -60,61 +60,18 @@ namespace ACE.Server.Network.Handlers
                 var chatType = (ChatType)clientMessage.Payload.ReadUInt32();
 
 
-                var adjustedChannelID = channelID;
-                var adjustedchatType = chatType;
-
-                if (chatBlobDispatchType == ChatNetworkBlobDispatchType.ASYNCMETHOD_SENDTOROOMBYNAME)
+                if (channelID == TurbineChatChannel.Society) // shouldn't ever be hit
                 {
-                    adjustedChannelID = chatType switch
-                    {
-                        ChatType.Allegiance     => TurbineChatChannel.Allegiance,
-                        ChatType.General        => TurbineChatChannel.General,
-                        ChatType.Trade          => TurbineChatChannel.Trade,
-                        ChatType.LFG            => TurbineChatChannel.LFG,
-                        ChatType.Roleplay       => TurbineChatChannel.Roleplay,
-                        ChatType.Society        => TurbineChatChannel.Society,
-                        ChatType.SocietyCelHan  => TurbineChatChannel.Society,
-                        ChatType.SocietyEldWeb  => TurbineChatChannel.Society,
-                        ChatType.SocietyRadBlo  => TurbineChatChannel.Society,
-                        ChatType.Olthoi         => TurbineChatChannel.Olthoi,
-                        _                       => TurbineChatChannel.General
-                    };
-
-                    adjustedchatType = (ChatType)adjustedChannelID;
-                }
-                else if (chatBlobDispatchType == ChatNetworkBlobDispatchType.ASYNCMETHOD_SENDTOROOMBYID)
-                {
-                    if (channelID > TurbineChatChannel.SocietyRadiantBlood || channelID == TurbineChatChannel.Allegiance) // Channel must be an allegiance channel
-                        adjustedchatType = ChatType.Allegiance;
-                    else if (channelID >= TurbineChatChannel.Society) // Channel must be a society restricted channel
-                        adjustedchatType = ChatType.Society;
-                    else if (channelID == TurbineChatChannel.Olthoi) // Channel must is the Olthoi play channel
-                        adjustedchatType = ChatType.Olthoi;
-                    else                                            // Channel must be one of the channels available to all players
-                    {
-                        if (channelID == TurbineChatChannel.General)
-                            adjustedchatType = ChatType.General;
-                        else if (channelID == TurbineChatChannel.Trade)
-                            adjustedchatType = ChatType.Trade;
-                        else if (channelID == TurbineChatChannel.LFG)
-                            adjustedchatType = ChatType.LFG;
-                        else if (channelID == TurbineChatChannel.Roleplay)
-                            adjustedchatType = ChatType.Roleplay;
-                    }
+                    ChatPacket.SendServerMessage(session, "You do not belong to a society.", ChatMessageType.Broadcast); // I don't know if this is how it was done on the live servers
+                    return;
                 }
 
-                if (channelID != adjustedChannelID)
-                    log.Debug($"[CHAT] ChannelID ({channelID}) was adjusted to {adjustedChannelID} | ChatNetworkBlobDispatchType: {chatBlobDispatchType}");
+                var gameMessageTurbineChat = new GameMessageTurbineChat(ChatNetworkBlobType.NETBLOB_EVENT_BINARY, channelID, session.Player.Name, message, senderID, chatType);
 
-                if (chatType != adjustedchatType)
-                    log.Debug($"[CHAT] ChatType ({chatType}) was adjusted to {adjustedchatType} | ChatNetworkBlobDispatchType: {chatBlobDispatchType}");
+                if (channelID > TurbineChatChannel.SocietyRadiantBlood) // Channel must be an allegiance channel
 
-                var gameMessageTurbineChat = new GameMessageTurbineChat(ChatNetworkBlobType.NETBLOB_EVENT_BINARY, ChatNetworkBlobDispatchType.ASYNCMETHOD_SENDTOROOMBYNAME, adjustedChannelID, session.Player, message, senderID, adjustedchatType);
-
-                if (adjustedChannelID > TurbineChatChannel.SocietyRadiantBlood || adjustedChannelID == TurbineChatChannel.Allegiance) // Channel must be an allegiance channel
                 {
-                    //var allegiance = AllegianceManager.FindAllegiance(channelID);
-                    var allegiance = AllegianceManager.GetAllegiance(session.Player);
+                    var allegiance = AllegianceManager.FindAllegiance(channelID);
                     if (allegiance != null)
                     {
                         // is sender booted / gagged?
@@ -138,10 +95,10 @@ namespace ACE.Server.Network.Handlers
                             online.Session.Network.EnqueueSend(gameMessageTurbineChat);
                         }
 
-                        session.Network.EnqueueSend(new GameMessageTurbineChat(ChatNetworkBlobType.NETBLOB_RESPONSE_BINARY, ChatNetworkBlobDispatchType.ASYNCMETHOD_SENDTOROOMBYNAME, contextId, null, null, 0, adjustedchatType));
+                        session.Network.EnqueueSend(new GameMessageTurbineChat(ChatNetworkBlobType.NETBLOB_RESPONSE_BINARY, contextId, null, null, 0, chatType));
                     }
                 }
-                else if (adjustedChannelID >= TurbineChatChannel.Society) // Channel must be a society restricted channel
+                else if (channelID > TurbineChatChannel.Society) // Channel must be a society restricted channel
                 {
                     var senderSociety = session.Player.Society;
 
@@ -176,9 +133,9 @@ namespace ACE.Server.Network.Handlers
                         recipient.Session.Network.EnqueueSend(gameMessageTurbineChat);
                     }
 
-                    session.Network.EnqueueSend(new GameMessageTurbineChat(ChatNetworkBlobType.NETBLOB_RESPONSE_BINARY, ChatNetworkBlobDispatchType.ASYNCMETHOD_SENDTOROOMBYNAME, contextId, null, null, 0, adjustedchatType));
+                    session.Network.EnqueueSend(new GameMessageTurbineChat(ChatNetworkBlobType.NETBLOB_RESPONSE_BINARY, contextId, null, null, 0, chatType));
                 }
-                else if (adjustedChannelID == TurbineChatChannel.Olthoi) // Channel must is the Olthoi play channel
+                else if (channelID == TurbineChatChannel.Olthoi) // Channel must is the Olthoi play channel
                 {
                     // todo: olthoi play chat (ha! yeah right...)
                 }
@@ -187,38 +144,49 @@ namespace ACE.Server.Network.Handlers
                     if (PropertyManager.GetBool("chat_echo_only").Item)
                     {
                         session.Network.EnqueueSend(gameMessageTurbineChat);
-                        session.Network.EnqueueSend(new GameMessageTurbineChat(ChatNetworkBlobType.NETBLOB_RESPONSE_BINARY, ChatNetworkBlobDispatchType.ASYNCMETHOD_SENDTOROOMBYNAME, contextId, null, null, 0, adjustedchatType));
+                        session.Network.EnqueueSend(new GameMessageTurbineChat(ChatNetworkBlobType.NETBLOB_RESPONSE_BINARY, contextId, null, null, 0, chatType));
                         return;
                     }
 
                     if (PropertyManager.GetBool("chat_requires_account_15days").Item && !session.Player.Account15Days)
                     {
-                        HandleChatReject(session, contextId, chatType, gameMessageTurbineChat, "because this account is not 15 days old");
+                        if (PropertyManager.GetBool("chat_echo_reject").Item)
+                            session.Network.EnqueueSend(gameMessageTurbineChat);
+
+                        session.Network.EnqueueSend(new GameMessageTurbineChat(ChatNetworkBlobType.NETBLOB_RESPONSE_BINARY, contextId, null, null, 0, chatType));
                         return;
                     }
 
                     var chat_requires_account_time_seconds = PropertyManager.GetLong("chat_requires_account_time_seconds").Item;
                     if (chat_requires_account_time_seconds > 0 && (DateTime.UtcNow - session.Player.Account.CreateTime).TotalSeconds < chat_requires_account_time_seconds)
                     {
-                        HandleChatReject(session, contextId, chatType, gameMessageTurbineChat, "because this account is not old enough");
+                        if (PropertyManager.GetBool("chat_echo_reject").Item)
+                            session.Network.EnqueueSend(gameMessageTurbineChat);
+
+                        session.Network.EnqueueSend(new GameMessageTurbineChat(ChatNetworkBlobType.NETBLOB_RESPONSE_BINARY, contextId, null, null, 0, chatType));
                         return;
                     }
 
                     var chat_requires_player_age = PropertyManager.GetLong("chat_requires_player_age").Item;
                     if (chat_requires_player_age > 0 && session.Player.Age < chat_requires_player_age)
                     {
-                        HandleChatReject(session, contextId, chatType, gameMessageTurbineChat, "because this character has not been played enough");
+                        if (PropertyManager.GetBool("chat_echo_reject").Item)
+                            session.Network.EnqueueSend(gameMessageTurbineChat);
+
+                        session.Network.EnqueueSend(new GameMessageTurbineChat(ChatNetworkBlobType.NETBLOB_RESPONSE_BINARY, contextId, null, null, 0, chatType));
                         return;
                     }
 
                     var chat_requires_player_level = PropertyManager.GetLong("chat_requires_player_level").Item;
                     if (chat_requires_player_level > 0 && session.Player.Level < chat_requires_player_level)
                     {
-                        HandleChatReject(session, contextId, chatType, gameMessageTurbineChat, $"because this character has reached level {chat_requires_player_level}");
+                        if (PropertyManager.GetBool("chat_echo_reject").Item)
+                            session.Network.EnqueueSend(gameMessageTurbineChat);
+
+                        session.Network.EnqueueSend(new GameMessageTurbineChat(ChatNetworkBlobType.NETBLOB_RESPONSE_BINARY, contextId, null, null, 0, chatType));
                         return;
                     }
 
-                    _ = SendWebhookedChat(gameMessageTurbineChat.SenderName, gameMessageTurbineChat.Message, null, gameMessageTurbineChat.Channel);
 
                     foreach (var recipient in PlayerManager.GetAllOnline())
                     {
@@ -237,7 +205,7 @@ namespace ACE.Server.Network.Handlers
                             if (PropertyManager.GetBool("chat_echo_reject").Item)
                                 session.Network.EnqueueSend(gameMessageTurbineChat);
 
-                            session.Network.EnqueueSend(new GameMessageTurbineChat(ChatNetworkBlobType.NETBLOB_RESPONSE_BINARY, ChatNetworkBlobDispatchType.ASYNCMETHOD_SENDTOROOMBYNAME, contextId, null, null, 0, adjustedchatType));
+                            session.Network.EnqueueSend(new GameMessageTurbineChat(ChatNetworkBlobType.NETBLOB_RESPONSE_BINARY, contextId, null, null, 0, chatType));
                             return;
                         }
 
@@ -247,88 +215,13 @@ namespace ACE.Server.Network.Handlers
                         recipient.Session.Network.EnqueueSend(gameMessageTurbineChat);
                     }
 
-                    session.Network.EnqueueSend(new GameMessageTurbineChat(ChatNetworkBlobType.NETBLOB_RESPONSE_BINARY, ChatNetworkBlobDispatchType.ASYNCMETHOD_SENDTOROOMBYNAME, contextId, null, null, 0, adjustedchatType));
+                    session.Network.EnqueueSend(new GameMessageTurbineChat(ChatNetworkBlobType.NETBLOB_RESPONSE_BINARY, contextId, null, null, 0, chatType));
                 }
 
-                LogTurbineChat(adjustedChannelID, session.Player.Name, message, senderID, adjustedchatType);
+                LogTurbineChat(channelID, session.Player.Name, message, senderID, chatType);
             }
             else
                 Console.WriteLine($"Unhandled TurbineChatHandler ChatNetworkBlobType: 0x{(uint)chatBlobType:X4}");
-        }
-
-        static bool webhookMissingErrorEmitted = false;
-
-        public static async Task SendWebhookedChat(string sender, string message, string webhookUrl = null, uint? channelId = null)
-        {
-            if (channelId != null)
-            {
-                if (!System.Enum.TryParse<TurbineChatChannel_Enum>(channelId.ToString(), out var channelEnum))
-                {
-                    log.Warn($"SendWebhookedChat: Invalid channel ID {channelId}");
-                    return;
-                }
-                var channelName = $"{channelEnum}";
-                await SendWebhookedChat(sender, message, webhookUrl, channelName);
-            }
-            else
-            {
-                await SendWebhookedChat(sender, message, webhookUrl, "");
-            }
-        }
-
-        public static async Task SendWebhookedChat(string sender, string message, string webhookUrl = null, string channelName = "")
-        {
-            await Task.Run(() =>
-            {
-                try
-                {
-                    string webhook = webhookUrl;
-                    if (webhook == null)
-                    {
-                        webhook = PropertyManager.GetString("turbine_chat_webhook").Item;
-                        if (webhook == "")
-                        {
-                            if (!webhookMissingErrorEmitted)
-                            {
-                                webhookMissingErrorEmitted = true;
-                                log.Warn("server property turbine_chat_webhook must be set in order to output chat to a Discord channel.");
-                            }
-                            return;
-                        }
-                    }
-
-                    if (!string.IsNullOrWhiteSpace(channelName))
-                        channelName = $"[{channelName}] ";
-
-                    var dict = new System.Collections.Generic.Dictionary<string, string>();
-                    dict["content"] = $"{channelName}{sender}: \"{message}\"";
-
-                    var payload = Newtonsoft.Json.JsonConvert.SerializeObject(dict);
-                    using (var wc = new System.Net.WebClient())
-                    {
-                        wc.Headers.Add("Content-Type", "application/json");
-                        wc.UploadString(webhook, payload);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    log.Error(ex);
-                }
-            });
-        }   
-
-        private static void HandleChatReject(Session session, uint contextId, ChatType chatType, GameMessageTurbineChat gameMessageTurbineChat, string rejectReason)
-        {
-            if (PropertyManager.GetBool("chat_echo_reject").Item)
-                session.Network.EnqueueSend(gameMessageTurbineChat);
-
-            if (PropertyManager.GetBool("chat_inform_reject").Item)
-            {
-                session.Network.EnqueueSend(new GameEventCommunicationTransientString(session, $"{chatType} is currently disabled{(string.IsNullOrEmpty(rejectReason) ? "" : $" for you {rejectReason}")}."));
-                session.Network.EnqueueSend(new GameMessageSystemChat($"{chatType} is currently disabled{(string.IsNullOrEmpty(rejectReason) ? "" : $" for you {rejectReason}")}.", ChatMessageType.Broadcast));
-            }
-
-            session.Network.EnqueueSend(new GameMessageTurbineChat(ChatNetworkBlobType.NETBLOB_RESPONSE_BINARY, ChatNetworkBlobDispatchType.ASYNCMETHOD_SENDTOROOMBYNAME, contextId, null, null, 0, chatType));
         }
 
         private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);

@@ -572,7 +572,6 @@ namespace ACE.Server.Managers
                 log.Error("turbine_chat_webhook_audit is not defined!");
                 return;
             }
-            _ = Network.Handlers.TurbineChatHandler.SendWebhookedChat(issuer?.Name ?? "[SYSTEM]", message, webhook, "AUDIT");
 
             //if (PropertyManager.GetBool("log_audit", true).Item)
                 //log.Info($"[AUDIT] {(issuer != null ? $"{issuer.Name} says on the Audit channel: " : "")}{message}");
