@@ -108,7 +108,7 @@ namespace ACE.Server.WorldObjects
             var animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Ready, MotionCommand.NonCombat);
 
             var motion = new Motion(MotionStance.NonCombat);
-            ExecuteMotionPersist(motion);
+            ExecuteMotion(motion);
 
             var player = this as Player;
             if (player != null)
@@ -164,7 +164,7 @@ namespace ACE.Server.WorldObjects
             animLength += MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Ready, (MotionCommand)combatStance);
 
             var motion = new Motion(combatStance);
-            ExecuteMotionPersist(motion);
+            ExecuteMotion(motion);
 
             var player = this as Player;
             if (player != null)
@@ -189,7 +189,7 @@ namespace ACE.Server.WorldObjects
             animLength += MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Ready, MotionCommand.Magic);
 
             var motion = new Motion(MotionStance.Magic);
-            ExecuteMotionPersist(motion);
+            ExecuteMotion(motion);
 
             var player = this as Player;
             if (player != null)
@@ -216,7 +216,7 @@ namespace ACE.Server.WorldObjects
             var swapTime = SwitchCombatStyles();
 
             var motion = new Motion(combatStance);
-            var stanceTime = ExecuteMotionPersist(motion);
+            var stanceTime = ExecuteMotion(motion);
 
             var ammo = GetEquippedAmmo();
             var reloadTime = 0.0f;
@@ -649,7 +649,7 @@ namespace ACE.Server.WorldObjects
 
             // phantom weapons ignore all armor and shields
             if (weapon != null && weapon.HasImbuedEffect(ImbuedEffectType.IgnoreAllArmor))
-                return (float)Server.Managers.PropertyManager.GetDouble("phantom_damage_shield_multi", 1.0, false).Item;
+                return 1.0f;
 
             // is monster in front of player,
             // within shield effectiveness area?

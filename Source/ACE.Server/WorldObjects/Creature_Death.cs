@@ -20,6 +20,7 @@ namespace ACE.Server.WorldObjects
     partial class Creature
     {
         public TreasureDeath DeathTreasure { get => DeathTreasureType.HasValue ? DatabaseManager.World.GetCachedDeathTreasure(DeathTreasureType.Value) : null; }
+        public bool Enltrophy = false;
 
         private bool onDeathEntered = false;
 
@@ -519,8 +520,11 @@ namespace ACE.Server.WorldObjects
         /// Transfers generated treasure from creature to corpse
         /// </summary>
         private List<WorldObject> GenerateTreasure(DamageHistoryInfo killer, Corpse corpse)
+
         {
-            var droppedItems = new List<WorldObject>();
+
+            var droppedItems = new List<WorldObject>();         
+
 
             // create death treasure from loot generation factory
             if (DeathTreasure != null)
@@ -529,11 +533,15 @@ namespace ACE.Server.WorldObjects
                 foreach (WorldObject wo in items)
                 {
                     if (corpse != null)
+                    {
                         corpse.TryAddToInventory(wo);
-                    else
-                        droppedItems.Add(wo);
+                        var pktrophy = WorldObjectFactory.CreateNewWorldObject("ace1000002-pktrophy");
+                        pktrophy.SetStackSize(1);
+                        corpse.TryAddToInventory(pktrophy);
 
-                    DoCantripLogging(killer, wo);
+                            DoCantripLogging(killer, wo);
+                      
+                    }
                 }
             }
 

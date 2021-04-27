@@ -1034,7 +1034,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (player.Allegiance != null && player.MonarchId != player.Guid.Full)
+            if (player.Allegiance != null)
             {
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} is already in an allegiance.", ChatMessageType.Broadcast));
                 return;

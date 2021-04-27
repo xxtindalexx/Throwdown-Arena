@@ -28,7 +28,7 @@ using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Command.Handlers.Processors
 {
-    public partial class DeveloperContentCommands
+    public class DeveloperContentCommands
     {
         public enum FileType
         {
@@ -242,7 +242,7 @@ namespace ACE.Server.Command.Handlers.Processors
                     break;
 
                 case FileType.Weenie:
-                    ImportSQLWeenieWrapped(session, param, parameters.Length >= 3 ? parameters[2] : ""); ImportSQLWeenie(session, param);
+                    ImportSQLWeenie(session, param);
                     break;
             }
         }
