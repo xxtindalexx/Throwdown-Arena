@@ -216,6 +216,8 @@ namespace ACE.Entity.Enum.Properties
         PCAPRecordeOmegaY              = 8017,
         [ServerOnly]
         PCAPRecordeOmegaZ              = 8018,
+        [ServerOnly]
+        StreakTimer                    = 9006,
 
 
 
