@@ -106,7 +106,29 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            sourceItem.HandleActionUseOnTarget(this, target);
+            if (target.CurrentLandblock != null && target != this)
+            {
+                // todo: verify target can be used remotely
+                // move RecipeManager.VerifyUse logic into base Player_Use
+                // this was avoided because i didn't want to deal with the ramifications of random items missing the correct ItemUseable flags,
+                // and because there are still some ItemUseable flags with missing logic we haven't quite figured out yet
+
+                if (IsBusy)
+                {
+                    SendUseDoneEvent(WeenieError.YoureTooBusy);
+                    return;
+                }
+
+                CreateMoveToChain(target, (success) =>
+                {
+                    if (success)
+                        sourceItem.HandleActionUseOnTarget(this, target);
+                    else
+                        SendUseDoneEvent();
+                });
+            }
+            else
+                sourceItem.HandleActionUseOnTarget(this, target);
         }
 
         /// <summary>
@@ -168,6 +190,10 @@ namespace ACE.Server.WorldObjects
             if (success)
                 item.OnActivate(this);
 
+            // manually managed
+            if (LastUseTime == float.MinValue)
+                return;
+
             var actionChain = new ActionChain();
             actionChain.AddDelaySeconds(LastUseTime);
             actionChain.AddAction(this, () => SendUseDoneEvent());
@@ -214,7 +240,6 @@ namespace ACE.Server.WorldObjects
                 ApplyConsumableWithAnimationCallbacks(useMotion, action, animMod);
                 return;
             }
-
             IsBusy = true;
 
             var actionChain = new ActionChain();
@@ -284,7 +309,8 @@ namespace ACE.Server.WorldObjects
 
             actionChain.EnqueueChain();
 
-            LastUseTime = animTime;
+            // manually managed
+            LastUseTime = float.MinValue;
         }
 
         public void HandleMotionDone_UseConsumable(uint motionID, bool success)
@@ -296,9 +322,6 @@ namespace ACE.Server.WorldObjects
             if (motionID != (uint)FoodState.UseMotion)
                 return;
 
-            if (FoodState.Callback != null)
-                FoodState.Callback();
-
             // restore state vars
             var animMod = FoodState.AnimMod;
             var animTime = 0.0f;
@@ -307,20 +330,37 @@ namespace ACE.Server.WorldObjects
             var useAnimTime = FoodState.UseAnimTime;
             var prevStance = FoodState.PrevStance;
 
-            FoodState.FinishChugging();
-
-            if (animMod == 1.0f)
+            if (motionID != (uint)MotionCommand.Ready)
             {
-                // return to ready stance
-                animTime += EnqueueMotion_Force(actionChain, MotionStance.NonCombat, MotionCommand.Ready, useMotion);
+                if (FoodState.Callback != null)
+                {
+                    FoodState.Callback();
+                    FoodState.Callback = null;
+                }
+
+                FoodState.UseMotion = MotionCommand.Ready;
+
+                if (animMod == 1.0f)
+                {
+                    // return to ready stance
+                    animTime += EnqueueMotion_Force(actionChain, MotionStance.NonCombat, MotionCommand.Ready, useMotion);
+                }
+                else
+                    actionChain.AddDelaySeconds(useAnimTime * (1.0f - animMod));
             }
             else
-                actionChain.AddDelaySeconds(useAnimTime * (1.0f - animMod));
+            {
+                FoodState.FinishChugging();
 
-            if (prevStance != MotionStance.NonCombat)
-                animTime += EnqueueMotion_Force(actionChain, prevStance, MotionCommand.Ready, MotionCommand.NonCombat);
+                if (prevStance != MotionStance.NonCombat)
+                    animTime += EnqueueMotion_Force(actionChain, prevStance, MotionCommand.Ready, MotionCommand.NonCombat);
 
-            actionChain.AddAction(this, () => { IsBusy = false; });
+                actionChain.AddAction(this, () =>
+                {
+                    SendUseDoneEvent();
+                    IsBusy = false;
+                });
+            }
 
             actionChain.EnqueueChain();
         }
